@@ -1,52 +1,50 @@
 package br.unaerp;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Conta {
     private int id;
     private float saldo;
-    private Usuario usuario;
+    private List<Transacao> transacoes;
 
-    public Conta(int id, Usuario usuario) {
+    public Conta(int id) {
         this.id = id;
         this.saldo = 0;
-        this.usuario = usuario; 
+        this.transacoes = new ArrayList<>();
     }
 
     public float getSaldo() {
-        return this.saldo;
+        return saldo;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
+    public void depositar(float valor, int dia, int mes, int ano) {
+        saldo += valor;
+        registrarTransacao(valor, "Receita", "Depósito na conta", dia, mes, ano);
     }
 
-    public void depositar(float valor) {
-        this.saldo += valor;
-        usuario.registrarTransacao(valor, "Receita", "Depósito na conta");
-    }
-
-    public void sacar(float valor) {
-        if (this.saldo < valor) {
+    public void sacar(float valor, int dia, int mes, int ano) {
+        if (saldo < valor) {
             System.out.println("Saldo insuficiente.");
             return;
         }
-        this.saldo -= valor;
-        usuario.registrarTransacao(valor, "Despesa", "Saque da conta");
+        saldo -= valor;
+        registrarTransacao(valor, "Despesa", "Saque da conta", dia, mes, ano);
     }
 
-    public void transferir(Conta contaPara, float valor) {
-        if (this.saldo < valor) {
-            System.out.println("Saldo insuficiente.");
-            return;
+    public void registrarTransacao(float valor, String categoria, String descricao, int dia, int mes, int ano) {
+        transacoes.add(new Transacao(valor, categoria, descricao, dia, mes, ano));
+    }
+
+    public void imprimirExtrato() {
+        System.out.println("Extrato da Conta ID: " + id);
+        System.out.println("Saldo Atual: R$ " + saldo);
+        System.out.println("Transações:");
+        for (Transacao t : transacoes) {
+            System.out.println("Data: " + t.getDia() + "/" + t.getMes() + "/" + t.getAno() +
+                    " | Categoria: " + t.getCategoria() +
+                    " | Valor: R$ " + t.getValor() +
+                    " | Descrição: " + t.getDescricao());
         }
-
-        this.saldo -= valor;
-        contaPara.depositar(valor);
-        usuario.registrarTransacao(valor, "Despesa", "Transferência para outra conta");
-        contaPara.getUsuario().registrarTransacao(valor, "Receita", "Transferência recebida");
-    }
-
-    @Override
-    public String toString() {
-        return "Conta ID: " + id + ", Saldo: " + saldo + ", Usuário: " + usuario.getNome();
     }
 }

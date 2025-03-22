@@ -1,49 +1,43 @@
 package br.unaerp;
 
-import java.util.Date;
-
 public class Transacao {
     private float valor;
-    private String categoria; // Receita ou Despesa
+    private String categoria;
     private String descricao;
-    private Date data;
+    private int dia;
+    private int mes;
+    private int ano;
 
-    public Transacao(float valor, String categoria, String descricao) {
+    public Transacao(float valor, String categoria, String descricao, int dia, int mes, int ano) {
         this.valor = valor;
         this.categoria = categoria;
         this.descricao = descricao;
-        this.data = new Date();
+        this.dia = dia;
+        this.mes = mes;
+        this.ano = ano;
     }
 
     public float getValor() {
         return valor;
     }
 
-    public void setValor(float valor) {
-        this.valor = valor;
-    }
-
     public String getCategoria() {
         return categoria;
-    }
-
-    public void setCategoria(String categoria) {
-        this.categoria = categoria;
     }
 
     public String getDescricao() {
         return descricao;
     }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public int getDia() {
+        return dia;
     }
 
-    public Date getData() {
-        return data;
+    public int getMes() {
+        return mes;
     }
 
-    public void setData(Date data) {
-        this.data = data;
+    public int getAno() {
+        return ano;
     }
 }

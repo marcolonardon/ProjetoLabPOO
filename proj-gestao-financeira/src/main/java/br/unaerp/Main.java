@@ -1,33 +1,16 @@
 package br.unaerp;
 
-import java.util.Scanner;
-
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-
         Usuario usuario = new Usuario("João Silva", "Pessoa Física");
         usuario.setDocumento("123.456.789-00");
 
-        Conta conta = new Conta(1, usuario);
-
-        conta.depositar(1000);
-        conta.sacar(300);
-
-        System.out.print("Informe o valor da transação de João: ");
-        float valorJoao = scanner.nextFloat();
-        scanner.nextLine();
-
-        System.out.print("Informe a categoria da transação de João: ");
-        String categoriaJoao = scanner.nextLine();
-
-        System.out.print("Informe a descrição da transação de João: ");
-        String descricaoJoao = scanner.nextLine();
-
-        usuario.registrarTransacao(valorJoao, categoriaJoao, descricaoJoao);
+        usuario.registrarTransacao(500, "Receita", "Salário", 10, 3, 2025);
+        usuario.registrarTransacao(200, "Despesa", "Conta de luz", 11, 3, 2025);
+        usuario.registrarTransacao(300, "Despesa", "Compra de supermercado", 12, 3, 2025);
+        usuario.registrarTransacao(150, "Receita", "Bônus", 13, 3, 2025);
+        usuario.registrarTransacao(100, "Despesa", "Lanche", 14, 3, 2025);
 
         usuario.imprimirInformacoesUsuario();
-
-        scanner.close();
     }
 }
