@@ -1,36 +1,20 @@
 package br.unaerp;
 
-/*
-Os usuários devem poder registrar transações financeiras, classificando-
-as como receita ou despesa. Para cada transação, devem ser informados:
-valor, categoria, data e descrição.
-* */
+import java.util.Date;
+
 public class Transacao {
-    private String classificacao;
     private float valor;
-    private String data;
+    private String categoria; // Receita ou Despesa
     private String descricao;
+    private Date data;
 
-    private String[] historico;
-    Transacao(String classificacao, String data, String descricao){
-        this.classificacao = classificacao;
-        this.valor = 0;
-        this.data = data;
+    public Transacao(float valor, String categoria, String descricao) {
+        this.valor = valor;
+        this.categoria = categoria;
         this.descricao = descricao;
-        this.historico = null;
+        this.data = new Date();
     }
 
-    private void fezTransacao(){
-        int totalTrasacoes = this.historico.length;
-        historico[totalTrasacoes] = "- Categoria: "+this.classificacao+" - Data: "+this.data+" - valor: "+this.valor;
-    }
-    public String getClassificacao() {
-        return classificacao;
-    }
-
-    public void setClassificacao(String classificacao) {
-        this.classificacao = classificacao;
-    }
     public float getValor() {
         return valor;
     }
@@ -39,12 +23,12 @@ public class Transacao {
         this.valor = valor;
     }
 
-    public String getData() {
-        return data;
+    public String getCategoria() {
+        return categoria;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setCategoria(String categoria) {
+        this.categoria = categoria;
     }
 
     public String getDescricao() {
@@ -54,11 +38,12 @@ public class Transacao {
     public void setDescricao(String descricao) {
         this.descricao = descricao;
     }
-    public String[] getHistorico() {
-        return historico;
+
+    public Date getData() {
+        return data;
     }
 
-    public void setHistorico(String[] historico) {
-        this.historico = historico;
+    public void setData(Date data) {
+        this.data = data;
     }
 }
