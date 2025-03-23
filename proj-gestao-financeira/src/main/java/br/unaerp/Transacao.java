@@ -17,6 +17,10 @@ public class Transacao {
         this.ano = ano;
     }
 
+    public void imprimirTransacao() {
+        System.out.println(dia + "/" + mes + "/" + ano + " - " + descricao + ": R$" + valor + " (" + categoria + ")");
+    }
+
     public float getValor() {
         return valor;
     }

@@ -1,5 +1,7 @@
 package br.unaerp;
 
+import java.util.Scanner;
+
 public class Main {
     public static void main(String[] args) {
         Usuario usuario = new Usuario("João Silva", "Pessoa Física");
@@ -12,5 +14,13 @@ public class Main {
         usuario.registrarTransacao(100, "Despesa", "Lanche", 14, 3, 2025);
 
         usuario.imprimirInformacoesUsuario();
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("\nDeseja filtrar transações? (S/N)");
+        String resposta = scanner.nextLine();
+        if (resposta.equalsIgnoreCase("S")) {
+            usuario.filtrarTransacoes();
+        }
+        scanner.close();
     }
 }

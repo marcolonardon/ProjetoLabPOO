@@ -2,6 +2,7 @@ package br.unaerp;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class Usuario {
     private String nome;
@@ -71,5 +72,56 @@ public class Usuario {
                     " | Descrição: " + t.getDescricao());
         }
         System.out.println("\nSaldo Total: R$ " + calcularSaldoTotal());
+    }
+
+    public void filtrarTransacoes() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Escolha o filtro: 1 - Data | 2 - Classificação | 3 - Categoria");
+        int escolha = scanner.nextInt();
+        scanner.nextLine();
+        List<Transacao> resultado = new ArrayList<>();
+        switch (escolha) {
+            case 1:
+                System.out.println("Digite a data (dd mm aaaa):");
+                int dia = scanner.nextInt();
+                int mes = scanner.nextInt();
+                int ano = scanner.nextInt();
+                for (Transacao t : transacoes) {
+                    if (t.getDia() == dia && t.getMes() == mes && t.getAno() == ano) {
+                        resultado.add(t);
+                    }
+                }
+                break;
+            case 2:
+                System.out.println("Digite a categora (Despesa ou Receita):");
+                String classificacao = scanner.nextLine();
+                for (Transacao t : transacoes) {
+                    if (t.getCategoria().equalsIgnoreCase(classificacao)) {
+                        resultado.add(t);
+                    }
+                }
+                break;
+            case 3:
+                // classificacao = categoria???
+                System.out.println("Digite a categoria (Despesa ou Receita):");
+                String categoria = scanner.nextLine();
+                for (Transacao t : transacoes) {
+                    if (t.getCategoria().equalsIgnoreCase(categoria)) {
+                        resultado.add(t);
+                    }
+                }
+                break;
+            default:
+                System.out.println("Opção inválida.");
+                return;
+        }
+        if (resultado.isEmpty()) {
+            System.out.println("Nenhuma transação encontrada com esse filtro.");
+        } else {
+            System.out.println("Transações filtradas:");
+            for (Transacao t : resultado) {
+                t.imprimirTransacao();
+            }
+        }
     }
 }
