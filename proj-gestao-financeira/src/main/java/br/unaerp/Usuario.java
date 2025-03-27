@@ -89,17 +89,28 @@ public class Usuario {
         int[] periodo = obterPeriodoFiltragem(scanner);
         int diaInicio = periodo[0], mesInicio = periodo[1], anoInicio = periodo[2];
         int diaFim = periodo[3], mesFim = periodo[4], anoFim = periodo[5];
+
+        float periodoReceitas = 0, periodoDespesas = 0;
+        for (Transacao t : transacoes) {
+            if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)) {
+                if (t.getCategoria().equalsIgnoreCase("Receita"))
+                    periodoReceitas += t.getValor();
+                else if (t.getCategoria().equalsIgnoreCase("Despesa"))
+                    periodoDespesas += t.getValor();
+            }
+        }
+
         List<Transacao> resultado = new ArrayList<>();
-        float totalReceitas = 0, totalDespesas = 0;
+        float totalReceitasFiltro = 0, totalDespesasFiltro = 0;
         switch (escolha) {
             case 1:
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
-                            totalReceitas += t.getValor();
-                        else
-                            totalDespesas += t.getValor();
+                            totalReceitasFiltro += t.getValor();
+                        else if (t.getCategoria().equalsIgnoreCase("Despesa"))
+                            totalDespesasFiltro += t.getValor();
                     }
                 }
                 break;
@@ -111,23 +122,23 @@ public class Usuario {
                             && t.getCategoria().equalsIgnoreCase(classificacao)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
-                            totalReceitas += t.getValor();
-                        else
-                            totalDespesas += t.getValor();
+                            totalReceitasFiltro += t.getValor();
+                        else if (t.getCategoria().equalsIgnoreCase("Despesa"))
+                            totalDespesasFiltro += t.getValor();
                     }
                 }
                 break;
             case 3:
                 System.out.println("Digite a categoria (Receita ou Despesa):");
-                String categoria = scanner.nextLine();
+                String categoriaInput = scanner.nextLine();
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)
-                            && t.getCategoria().equalsIgnoreCase(categoria)) {
+                            && t.getCategoria().equalsIgnoreCase(categoriaInput)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
-                            totalReceitas += t.getValor();
-                        else
-                            totalDespesas += t.getValor();
+                            totalReceitasFiltro += t.getValor();
+                        else if (t.getCategoria().equalsIgnoreCase("Despesa"))
+                            totalDespesasFiltro += t.getValor();
                     }
                 }
                 break;
@@ -141,12 +152,16 @@ public class Usuario {
             System.out.println("Transações filtradas:");
             for (Transacao t : resultado)
                 t.imprimirTransacao();
-            float saldoPeriodo = totalReceitas - totalDespesas;
-            System.out.println("\nResumo do período:");
-            System.out.println("Total de Receitas: R$ " + totalReceitas);
-            System.out.println("Total de Despesas: R$ " + totalDespesas);
-            System.out.println("Saldo no período: R$ " + saldoPeriodo);
+            float saldoFiltro = totalReceitasFiltro - totalDespesasFiltro;
+            System.out.println("\nResumo do filtro:");
+            System.out.println("Total de Receitas (Filtro): R$ " + totalReceitasFiltro);
+            System.out.println("Total de Despesas (Filtro): R$ " + totalDespesasFiltro);
+            System.out.println("Saldo (Filtro): R$ " + saldoFiltro);
         }
+        System.out.println("\nResumo do período:");
+        System.out.println("Total de Receitas: R$ " + periodoReceitas);
+        System.out.println("Total de Despesas: R$ " + periodoDespesas);
+        System.out.println("Saldo no período: R$ " + (periodoReceitas - periodoDespesas));
     }
 
     private int[] obterPeriodoFiltragem(Scanner scanner) {
