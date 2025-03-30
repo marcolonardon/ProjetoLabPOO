@@ -5,13 +5,60 @@ import java.util.List;
 
 public class Conta {
     private int id;
+    private String login;
+    private String senha;
+    private String tipo;
+    private String nome;
+    private String documento;
     private float saldo;
     private List<Transacao> transacoes;
 
-    public Conta(int id) {
-        this.id = id;
+    // Construtor ajustado para receber login e senha
+    public Conta(String login, String senha, String tipo, String nome, String documento) {
+        this.tipo = tipo;
+        this.nome = nome;
+        this.documento = documento;
+        this.login = login;
+        this.senha = senha;
+        this.id = Math.abs(login.hashCode());
         this.saldo = 0;
         this.transacoes = new ArrayList<>();
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public String getSenha() {
+        return senha;
     }
 
     public float getSaldo() {
@@ -44,6 +91,7 @@ public class Conta {
     public String getExtrato() {
         StringBuilder extrato = new StringBuilder();
         extrato.append("Extrato da Conta ID: ").append(id).append("\n");
+        extrato.append("Login: ").append(login).append("\n");
         extrato.append("Saldo Atual: R$ ").append(saldo).append("\n");
         extrato.append("Transações:\n");
         if (transacoes.isEmpty()) {

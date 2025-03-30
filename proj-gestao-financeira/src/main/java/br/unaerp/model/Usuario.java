@@ -4,20 +4,42 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Usuario {
+    private String login;
+    private String senha;
     private String nome;
     private String tipo;
     private String documento;
     private List<Transacao> transacoes;
     private List<String> classificacoes;
 
-    public Usuario(String nome, String tipo) {
+    public Usuario(String login, String senha, String nome, String tipo, String documento) {
+        this.login = login;
+        this.senha = senha;
         this.nome = nome;
         this.tipo = tipo;
+        this.documento = documento;
         this.transacoes = new ArrayList<>();
         this.classificacoes = new ArrayList<>();
         this.classificacoes.add("Salário");
         this.classificacoes.add("Mercado");
         this.classificacoes.add("Saúde");
+    }
+
+    public String getLogin() {
+        return login;
+    }
+
+    public Object getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+
+    public boolean verificarSenha(String senha) {
+        return this.senha.equals(senha);
     }
 
     public String getNome() {
@@ -205,4 +227,6 @@ public class Usuario {
             return "Classificação não encontrada.";
         }
     }
+
+
 }
