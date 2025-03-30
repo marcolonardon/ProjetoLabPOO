@@ -1,4 +1,4 @@
-package br.unaerp;
+package br.unaerp.model;
 
 import java.util.ArrayList;
 import java.util.List;

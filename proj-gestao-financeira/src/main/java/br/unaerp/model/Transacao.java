@@ -1,4 +1,4 @@
-package br.unaerp;
+package br.unaerp.model;
 
 public class Transacao {
     private float valor;

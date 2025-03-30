@@ -1,4 +1,6 @@
-package br.unaerp;
+package br.unaerp.main;
+
+import br.unaerp.model.Usuario;
 
 import java.util.Scanner;
 
