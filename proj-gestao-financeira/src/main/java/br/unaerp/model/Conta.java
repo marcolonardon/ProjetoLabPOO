@@ -20,8 +20,7 @@ public class Conta {
 
     public void depositar(float valor, int dia, int mes, int ano) {
         if (valor <= 0) {
-            System.out.println("O valor do depósito deve ser positivo.");
-            return;
+            throw new IllegalArgumentException("O valor do depósito deve ser positivo.");
         }
         saldo += valor;
         registrarTransacao(valor, "Receita", "Depósito", "Depósito na conta", dia, mes, ano);
@@ -29,12 +28,10 @@ public class Conta {
 
     public void sacar(float valor, int dia, int mes, int ano) {
         if (valor <= 0) {
-            System.out.println("O valor do saque deve ser positivo.");
-            return;
+            throw new IllegalArgumentException("O valor do saque deve ser positivo.");
         }
         if (saldo < valor) {
-            System.out.println("Saldo insuficiente.");
-            return;
+            throw new IllegalStateException("Saldo insuficiente.");
         }
         saldo -= valor;
         registrarTransacao(valor, "Despesa", "Saque", "Saque da conta", dia, mes, ano);
@@ -44,20 +41,23 @@ public class Conta {
         transacoes.add(new Transacao(valor, categoria, classificacao, descricao, dia, mes, ano));
     }
 
-    public void imprimirExtrato() {
-        System.out.println("Extrato da Conta ID: " + id);
-        System.out.println("Saldo Atual: R$ " + saldo);
-        System.out.println("Transações:");
+    public String getExtrato() {
+        StringBuilder extrato = new StringBuilder();
+        extrato.append("Extrato da Conta ID: ").append(id).append("\n");
+        extrato.append("Saldo Atual: R$ ").append(saldo).append("\n");
+        extrato.append("Transações:\n");
         if (transacoes.isEmpty()) {
-            System.out.println("Nenhuma transação registrada.");
+            extrato.append("Nenhuma transação registrada.\n");
         } else {
             for (Transacao t : transacoes) {
-                System.out.println("Data: " + t.getDia() + "/" + t.getMes() + "/" + t.getAno() +
-                        " | Categoria: " + t.getCategoria() +
-                        " | Classificação: " + t.getClassificacao() +
-                        " | Valor: R$ " + t.getValor() +
-                        " | Descrição: " + t.getDescricao());
+                extrato.append("Data: ").append(t.getDia()).append("/")
+                        .append(t.getMes()).append("/")
+                        .append(t.getAno()).append(" | Categoria: ").append(t.getCategoria())
+                        .append(" | Classificação: ").append(t.getClassificacao())
+                        .append(" | Valor: R$ ").append(t.getValor())
+                        .append(" | Descrição: ").append(t.getDescricao()).append("\n");
             }
         }
+        return extrato.toString();
     }
 }

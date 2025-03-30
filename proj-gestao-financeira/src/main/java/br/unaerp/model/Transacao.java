@@ -19,8 +19,9 @@ public class Transacao {
         this.ano = ano;
     }
 
-    public void imprimirTransacao() {
-        System.out.println(dia + "/" + mes + "/" + ano + " - " + descricao + ": R$" + valor + " (" + classificacao + ") (" + categoria + ")");
+    public String getTransacaoString() {
+        return String.format("%02d/%02d/%04d - %s: R$ %.2f (%s) (%s)",
+                dia, mes, ano, descricao, valor, classificacao, categoria);
     }
 
     public float getValor() {
@@ -37,7 +38,6 @@ public class Transacao {
         }
         this.categoria = categoria;
     }
-
 
     public String getClassificacao() {
         return classificacao;

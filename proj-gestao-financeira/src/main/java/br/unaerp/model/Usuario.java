@@ -2,7 +2,6 @@ package br.unaerp.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 
 public class Usuario {
     private String nome;
@@ -45,7 +44,6 @@ public class Usuario {
         this.documento = documento;
     }
 
-
     public List<String> getClassificacoes() {
         return classificacoes;
     }
@@ -65,42 +63,29 @@ public class Usuario {
         return saldo;
     }
 
-    public void imprimirInformacoesUsuario() {
-        System.out.println("Informações do usuário: " + nome);
-        System.out.println("Tipo: " + tipo);
+    public String getInformacoesUsuario() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Informações do usuário: ").append(nome).append("\n");
+        sb.append("Tipo: ").append(tipo).append("\n");
         if (tipo.equalsIgnoreCase("Pessoa Física"))
-            System.out.println("CPF: " + documento);
+            sb.append("CPF: ").append(documento).append("\n");
         else
-            System.out.println("CNPJ: " + documento);
-        System.out.println("\nTransações:");
+            sb.append("CNPJ: ").append(documento).append("\n");
+        sb.append("\nTransações:\n");
         for (Transacao t : transacoes) {
-            System.out.println("Data: " + t.getDia() + "/" + t.getMes() + "/" + t.getAno() +
-                    " | Categoria: " + t.getCategoria() +
-                    " | Valor: R$ " + t.getValor() +
-                    " | Classificação: R$ " + t.getClassificacao() +
-                    " | Descrição: " + t.getDescricao());
+            sb.append("Data: ").append(t.getDia()).append("/")
+                    .append(t.getMes()).append("/").append(t.getAno())
+                    .append(" | Categoria: ").append(t.getCategoria())
+                    .append(" | Valor: R$ ").append(t.getValor())
+                    .append(" | Classificação: ").append(t.getClassificacao())
+                    .append(" | Descrição: ").append(t.getDescricao()).append("\n");
         }
-        System.out.println("\nSaldo Total: R$ " + calcularSaldoTotal());
+        sb.append("\nSaldo Total: R$ ").append(calcularSaldoTotal()).append("\n");
+        return sb.toString();
     }
 
-    public void filtrarTransacoes() {
-        Scanner scanner = new Scanner(System.in);
-        int escolha = -1;
-        while (true) {
-            System.out.println("Escolha o filtro: 1 - Data | 2 - Classificação | 3 - Categoria");
-            if (scanner.hasNextInt()) {
-                escolha = scanner.nextInt();
-                scanner.nextLine();
-                break;
-            } else {
-                System.out.println("Entrada inválida! Digite um número inteiro.");
-                scanner.nextLine();
-            }
-        }
-        int[] periodo = obterPeriodoFiltragem(scanner);
-        int diaInicio = periodo[0], mesInicio = periodo[1], anoInicio = periodo[2];
-        int diaFim = periodo[3], mesFim = periodo[4], anoFim = periodo[5];
-
+    public String filtrarTransacoes(int filtro, int diaInicio, int mesInicio, int anoInicio,
+                                    int diaFim, int mesFim, int anoFim, String filtroExtra) {
         float periodoReceitas = 0, periodoDespesas = 0;
         for (Transacao t : transacoes) {
             if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)) {
@@ -113,7 +98,8 @@ public class Usuario {
 
         List<Transacao> resultado = new ArrayList<>();
         float totalReceitasFiltro = 0, totalDespesasFiltro = 0;
-        switch (escolha) {
+
+        switch (filtro) {
             case 1:
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)) {
@@ -126,40 +112,21 @@ public class Usuario {
                 }
                 break;
             case 2:
-                System.out.println("Classificações disponíveis:");
-                for (String cat : classificacoes) {
-                    System.out.println("- " + cat);
-                }
-                System.out.println("Digite a classificação desejada:");
-                String catInput = scanner.nextLine().toUpperCase();
-                boolean classificacaoValida = false;
-                for (String cat : classificacoes) {
-                    if (cat.equalsIgnoreCase(catInput)) {
-                        classificacaoValida = true;
-                        break;
-                    }
-                }
-                if (!classificacaoValida) {
-                    System.out.println("Classificação inválida. Tente novamente.");
-                    return;
-                }
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)
-                            && t.getCategoria().equalsIgnoreCase(catInput)) {
+                            && t.getClassificacao().equalsIgnoreCase(filtroExtra)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
                             totalReceitasFiltro += t.getValor();
-                        else
+                        else if (t.getCategoria().equalsIgnoreCase("Despesa"))
                             totalDespesasFiltro += t.getValor();
                     }
                 }
                 break;
             case 3:
-                System.out.println("Digite a categoria (Receita ou Despesa):");
-                String categoriaInput = scanner.nextLine();
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)
-                            && t.getCategoria().equalsIgnoreCase(categoriaInput)) {
+                            && t.getCategoria().equalsIgnoreCase(filtroExtra)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
                             totalReceitasFiltro += t.getValor();
@@ -169,38 +136,34 @@ public class Usuario {
                 }
                 break;
             default:
-                System.out.println("Opção inválida.");
-                return;
+                throw new IllegalArgumentException("Opção de filtro inválida.");
         }
-        if (resultado.isEmpty())
-            System.out.println("Nenhuma transação encontrada com esse filtro.");
-        else {
-            System.out.println("Transações filtradas:");
-            for (Transacao t : resultado)
-                t.imprimirTransacao();
-            float saldoFiltro = totalReceitasFiltro - totalDespesasFiltro;
-            System.out.println("\nResumo do filtro:");
-            System.out.println("Total de Receitas (Filtro): R$ " + totalReceitasFiltro);
-            System.out.println("Total de Despesas (Filtro): R$ " + totalDespesasFiltro);
-            System.out.println("Saldo (Filtro): R$ " + saldoFiltro);
-        }
-        System.out.println("\nResumo do período:");
-        System.out.println("Total de Receitas: R$ " + periodoReceitas);
-        System.out.println("Total de Despesas: R$ " + periodoDespesas);
-        System.out.println("Saldo no período: R$ " + (periodoReceitas - periodoDespesas));
-    }
 
-    private int[] obterPeriodoFiltragem(Scanner scanner) {
-        System.out.println("Digite a data inicial (dd mm aaaa):");
-        int diaInicio = scanner.nextInt();
-        int mesInicio = scanner.nextInt();
-        int anoInicio = scanner.nextInt();
-        System.out.println("Digite a data final (dd mm aaaa):");
-        int diaFim = scanner.nextInt();
-        int mesFim = scanner.nextInt();
-        int anoFim = scanner.nextInt();
-        scanner.nextLine();
-        return new int[]{diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim};
+        StringBuilder sb = new StringBuilder();
+        if (resultado.isEmpty()) {
+            sb.append("Nenhuma transação encontrada com esse filtro.\n");
+        } else {
+            sb.append("Transações filtradas:\n");
+            for (Transacao t : resultado) {
+                sb.append("Data: ").append(t.getDia()).append("/")
+                        .append(t.getMes()).append("/").append(t.getAno())
+                        .append(" | Categoria: ").append(t.getCategoria())
+                        .append(" | Classificação: ").append(t.getClassificacao())
+                        .append(" | Valor: R$ ").append(t.getValor())
+                        .append(" | Descrição: ").append(t.getDescricao())
+                        .append("\n");
+            }
+            float saldoFiltro = totalReceitasFiltro - totalDespesasFiltro;
+            sb.append("\nResumo do filtro:\n");
+            sb.append("Total de Receitas (Filtro): R$ ").append(totalReceitasFiltro).append("\n");
+            sb.append("Total de Despesas (Filtro): R$ ").append(totalDespesasFiltro).append("\n");
+            sb.append("Saldo (Filtro): R$ ").append(saldoFiltro).append("\n");
+        }
+        sb.append("\nResumo do período:\n");
+        sb.append("Total de Receitas: R$ ").append(periodoReceitas).append("\n");
+        sb.append("Total de Despesas: R$ ").append(periodoDespesas).append("\n");
+        sb.append("Saldo no período: R$ ").append(periodoReceitas - periodoDespesas).append("\n");
+        return sb.toString();
     }
 
     private boolean isDataNoIntervalo(Transacao t, int diaInicio, int mesInicio, int anoInicio, int diaFim, int mesFim, int anoFim) {
@@ -210,37 +173,36 @@ public class Usuario {
         return dataTransacao >= dataInicio && dataTransacao <= dataFim;
     }
 
-    public void adicionarClassificacao(String novaClassificacao) {
+    public String adicionarClassificacao(String novaClassificacao) {
         if (!classificacoes.contains(novaClassificacao)) {
             classificacoes.add(novaClassificacao);
-            System.out.println("Classificacao adicionada com sucesso.");
+            return "Classificação adicionada com sucesso.";
         } else {
-            System.out.println("Classificacao já existe.");
+            return "Classificação já existe.";
         }
     }
 
-    public void editarClassificacao(String classificacaoAtual, String novaClassificacao) {
+    public String editarClassificacao(String classificacaoAtual, String novaClassificacao) {
         if (classificacoes.contains(classificacaoAtual)) {
             int index = classificacoes.indexOf(classificacaoAtual);
             classificacoes.set(index, novaClassificacao);
             for (Transacao t : transacoes) {
-                if (t.getCategoria().equalsIgnoreCase(classificacaoAtual))
-                    t.setCategoria(novaClassificacao);
+                if (t.getClassificacao().equalsIgnoreCase(classificacaoAtual)) {
+                    t.setClassificacao(novaClassificacao);
+                }
             }
-            System.out.println("Classificacao editada com sucesso.");
+            return "Classificação editada com sucesso.";
         } else {
-            System.out.println("Classificacao não encontrada.");
+            return "Classificação não encontrada.";
         }
     }
 
-
-    public void excluirClassificacao(String classificacao) {
+    public String excluirClassificacao(String classificacao) {
         if (classificacoes.contains(classificacao)) {
             classificacoes.remove(classificacao);
-            System.out.println("Classificacao excluída com sucesso.");
+            return "Classificação excluída com sucesso.";
         } else {
-            System.out.println("Classificacao não encontrada.");
+            return "Classificação não encontrada.";
         }
     }
-
 }
