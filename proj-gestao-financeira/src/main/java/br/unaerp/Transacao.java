@@ -3,14 +3,16 @@ package br.unaerp;
 public class Transacao {
     private float valor;
     private String categoria;
+    private String classificacao;
     private String descricao;
     private int dia;
     private int mes;
     private int ano;
 
-    public Transacao(float valor, String categoria, String descricao, int dia, int mes, int ano) {
+    public Transacao(float valor, String categoria, String classificacao, String descricao, int dia, int mes, int ano) {
         this.valor = valor;
         this.categoria = categoria;
+        this.classificacao = classificacao;
         this.descricao = descricao;
         this.dia = dia;
         this.mes = mes;
@@ -18,7 +20,7 @@ public class Transacao {
     }
 
     public void imprimirTransacao() {
-        System.out.println(dia + "/" + mes + "/" + ano + " - " + descricao + ": R$" + valor + " (" + categoria + ")");
+        System.out.println(dia + "/" + mes + "/" + ano + " - " + descricao + ": R$" + valor + " (" + classificacao + ") (" + categoria + ")");
     }
 
     public float getValor() {
@@ -27,6 +29,22 @@ public class Transacao {
 
     public String getCategoria() {
         return categoria;
+    }
+
+    public void setCategoria(String categoria) {
+        if (categoria == null || categoria.trim().isEmpty()) {
+            throw new IllegalArgumentException("Categoria não pode ser vazia.");
+        }
+        this.categoria = categoria;
+    }
+
+
+    public String getClassificacao() {
+        return classificacao;
+    }
+
+    public void setClassificacao(String classificacao) {
+        this.classificacao = classificacao;
     }
 
     public String getDescricao() {
