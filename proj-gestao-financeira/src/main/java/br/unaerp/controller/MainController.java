@@ -13,4 +13,6 @@ import java.awt.event.ActionListener;
 public class MainController {
 
 
+    public MainController(Usuario u, MainView mainView) {
+    }
 }

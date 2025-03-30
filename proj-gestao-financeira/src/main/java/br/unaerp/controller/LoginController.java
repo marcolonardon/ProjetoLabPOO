@@ -11,7 +11,7 @@ import java.util.Map;
 
 public class LoginController {
     private LoginView loginView;
-    private static Map<String, Usuario> usuarios = new HashMap<>(); // Armazena os usuários cadastrados
+    private static Map<String, Usuario> usuarios = new HashMap<>();
 
     public LoginController(LoginView loginView) {
         this.loginView = loginView;
@@ -30,18 +30,17 @@ public class LoginController {
         if (u != null && u.getSenha().equals(senha)) {
             JOptionPane.showMessageDialog(loginView, "Login realizado com sucesso!");
             System.out.println(u.getInformacoesUsuario());
-//            SwingUtilities.invokeLater(() -> {
-//                MainView mainView = new MainView();
-//                new MainController(u, mainView);
-//                mainView.setVisible(true);
-//                loginView.dispose();
-//            });
+            SwingUtilities.invokeLater(() -> {
+                MainView mainView = new MainView(usuarios.get(usuario));
+                new MainController(u, mainView);
+                mainView.setVisible(true);
+                loginView.dispose();
+            });
         } else {
             JOptionPane.showMessageDialog(loginView, "Usuário ou senha incorretos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
         }
     }
-
-
+    
     private void abrirCadastroUsuario() {
         loginView.dispose();
         SwingUtilities.invokeLater(() -> {
@@ -51,7 +50,6 @@ public class LoginController {
         });
     }
 
-    // Método para adicionar o usuário cadastrado no sistema
     public static void adicionarUsuario(Usuario usuario) {
         usuarios.put(usuario.getLogin(), usuario);
     }
