@@ -40,6 +40,15 @@ public class MainView extends JFrame {
                 dispose();
             }
         });
+
+        btnVisualizarTransacoes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                VisualizarTransacaoView visualizarTransacaoView = new VisualizarTransacaoView(usuario);
+                visualizarTransacaoView.setVisible(true);
+                dispose();
+            }
+        });
     }
 
     private void initComponents() {
