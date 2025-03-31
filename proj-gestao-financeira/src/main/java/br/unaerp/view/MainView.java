@@ -12,9 +12,7 @@ public class MainView extends JFrame {
     private JLabel saldoLabel;
 
     private JButton btnCadastrarTransacao;
-    private JButton btnCadastrarClassificacao;
-    private JButton btnEditarClassificacao;
-    private JButton btnExcluirClassificacao;
+    private JButton btnGerenciarClassificacoes;
     private JButton btnVisualizarTransacoes;
 
     private Usuario usuario;
@@ -28,8 +26,17 @@ public class MainView extends JFrame {
         btnCadastrarTransacao.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                VisualizarTransacaoView novaTransacaoView = new VisualizarTransacaoView(usuario);
+                RegistrarTransacaoView novaTransacaoView = new RegistrarTransacaoView(usuario);
                 novaTransacaoView.setVisible(true);
+                dispose();
+            }
+        });
+
+        btnGerenciarClassificacoes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GerenciarClassificacaoView classificacoesView = new GerenciarClassificacaoView(usuario);
+                classificacoesView.setVisible(true);
                 dispose();
             }
         });
@@ -65,17 +72,9 @@ public class MainView extends JFrame {
         gbc.gridwidth = 3;
         panel.add(btnCadastrarTransacao, gbc);
 
-        btnCadastrarClassificacao = new JButton("Cadastrar Classificação");
+        btnGerenciarClassificacoes = new JButton("Gerenciar Classificações");
         gbc.gridy = 2;
-        panel.add(btnCadastrarClassificacao, gbc);
-
-        btnEditarClassificacao = new JButton("Editar Classificação");
-        gbc.gridy = 3;
-        panel.add(btnEditarClassificacao, gbc);
-
-        btnExcluirClassificacao = new JButton("Excluir Classificação");
-        gbc.gridy = 4;
-        panel.add(btnExcluirClassificacao, gbc);
+        panel.add(btnGerenciarClassificacoes, gbc);
 
         btnVisualizarTransacoes = new JButton("Visualizar Transações");
         gbc.gridy = 5;
@@ -91,18 +90,6 @@ public class MainView extends JFrame {
 
     public JButton getBtnCadastrarTransacao() {
         return btnCadastrarTransacao;
-    }
-
-    public JButton getBtnCadastrarClassificacao() {
-        return btnCadastrarClassificacao;
-    }
-
-    public JButton getBtnEditarClassificacao() {
-        return btnEditarClassificacao;
-    }
-
-    public JButton getBtnExcluirClassificacao() {
-        return btnExcluirClassificacao;
     }
 
     public JButton getBtnVisualizarTransacoes() {

@@ -40,7 +40,7 @@ public class LoginController {
             JOptionPane.showMessageDialog(loginView, "Usuário ou senha incorretos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
         }
     }
-    
+
     private void abrirCadastroUsuario() {
         loginView.dispose();
         SwingUtilities.invokeLater(() -> {

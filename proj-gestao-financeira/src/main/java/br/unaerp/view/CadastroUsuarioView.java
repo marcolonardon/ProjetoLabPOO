@@ -15,41 +15,79 @@ public class CadastroUsuarioView extends JFrame {
 
     public CadastroUsuarioView() {
         setTitle("Cadastro de Novo Usuário");
-        setSize(400, 350);
+        setSize(400, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(6, 2, 5, 5));
+
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);  // Margens entre os componentes
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
 
         JLabel labelLogin = new JLabel("Usuário:");
-        campoLogin = new JTextField();
+        campoLogin = new JTextField(20);
 
         JLabel labelNome = new JLabel("Nome:");
-        campoNome = new JTextField();
+        campoNome = new JTextField(20);
 
         JLabel labelTipo = new JLabel("Tipo:");
         campoTipo = new JComboBox<>(new String[]{"Pessoa Física", "Pessoa Jurídica"});
 
         JLabel labelDocumento = new JLabel("CPF/CNPJ:");
-        campoDocumento = new JTextField();
+        campoDocumento = new JTextField(20);
 
         JLabel labelSenha = new JLabel("Senha:");
-        campoSenha = new JPasswordField();
+        campoSenha = new JPasswordField(20);
 
         botaoSalvar = new JButton("Salvar");
         botaoVoltar = new JButton("Voltar");
 
-        add(labelLogin);
-        add(campoLogin);
-        add(labelNome);
-        add(campoNome);
-        add(labelTipo);
-        add(campoTipo);
-        add(labelDocumento);
-        add(campoDocumento);
-        add(labelSenha);
-        add(campoSenha);
-        add(botaoSalvar);
-        add(botaoVoltar);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        add(labelLogin, gbc);
+
+        gbc.gridx = 1;
+        add(campoLogin, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        add(labelNome, gbc);
+
+        gbc.gridx = 1;
+        add(campoNome, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        add(labelTipo, gbc);
+
+        gbc.gridx = 1;
+        add(campoTipo, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        add(labelDocumento, gbc);
+
+        gbc.gridx = 1;
+        add(campoDocumento, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        add(labelSenha, gbc);
+
+        gbc.gridx = 1;
+        add(campoSenha, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        add(botaoSalvar, gbc);
+
+        gbc.gridx = 1;
+        add(botaoVoltar, gbc);
+
+        botaoSalvar.setPreferredSize(new Dimension(120, 40));
+
+        botaoVoltar.setPreferredSize(new Dimension(120, 40));
     }
 
     public String getLogin() {

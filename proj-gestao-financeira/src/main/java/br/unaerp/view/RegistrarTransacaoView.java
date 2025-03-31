@@ -5,7 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 
-public class VisualizarTransacaoView extends JFrame {
+public class RegistrarTransacaoView extends JFrame {
     private JTextField campoValor;
     private JComboBox<String> comboCategoria;
     private JComboBox<String> campoClassificacao;
@@ -18,7 +18,7 @@ public class VisualizarTransacaoView extends JFrame {
 
     private Usuario usuario;
 
-    public VisualizarTransacaoView(Usuario usuario) {
+    public RegistrarTransacaoView(Usuario usuario) {
         super("Registrar Nova Transação");
         this.usuario = usuario;
         initComponents();
