@@ -10,7 +10,7 @@ public class Usuario {
     private String tipo;
     private String documento;
     private List<Transacao> transacoes;
-    private List<String> classificacoes;
+    private List<String> categorias;
 
     public Usuario(String login, String senha, String nome, String tipo, String documento) {
         this.login = login;
@@ -19,10 +19,10 @@ public class Usuario {
         this.tipo = tipo;
         this.documento = documento;
         this.transacoes = new ArrayList<>();
-        this.classificacoes = new ArrayList<>();
-        this.classificacoes.add("Salário");
-        this.classificacoes.add("Mercado");
-        this.classificacoes.add("Saúde");
+        this.categorias = new ArrayList<>();
+        this.categorias.add("Salário");
+        this.categorias.add("Mercado");
+        this.categorias.add("Saúde");
     }
 
     public String getLogin() {
@@ -66,8 +66,8 @@ public class Usuario {
         this.documento = documento;
     }
 
-    public List<String> getClassificacoes() {
-        return classificacoes;
+    public List<String> getCategorias() {
+        return categorias;
     }
 
     public void registrarTransacao(float valor, String categoria, String classificacao, String descricao, int dia, int mes, int ano) {
@@ -97,9 +97,9 @@ public class Usuario {
         for (Transacao t : transacoes) {
             sb.append("Data: ").append(t.getDia()).append("/")
                     .append(t.getMes()).append("/").append(t.getAno())
-                    .append(" | Categoria: ").append(t.getCategoria())
-                    .append(" | Valor: R$ ").append(t.getValor())
                     .append(" | Classificação: ").append(t.getClassificacao())
+                    .append(" | Valor: R$ ").append(t.getValor())
+                    .append(" | Categoria: ").append(t.getCategoria())
                     .append(" | Descrição: ").append(t.getDescricao()).append("\n");
         }
         sb.append("\nSaldo Total: R$ ").append(calcularSaldoTotal()).append("\n");
@@ -136,7 +136,7 @@ public class Usuario {
             case 2:
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)
-                            && t.getClassificacao().equalsIgnoreCase(filtroExtra)) {
+                            && t.getCategoria().equalsIgnoreCase(filtroExtra)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
                             totalReceitasFiltro += t.getValor();
@@ -148,7 +148,7 @@ public class Usuario {
             case 3:
                 for (Transacao t : transacoes) {
                     if (isDataNoIntervalo(t, diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim)
-                            && t.getCategoria().equalsIgnoreCase(filtroExtra)) {
+                            && t.getClassificacao().equalsIgnoreCase(filtroExtra)) {
                         resultado.add(t);
                         if (t.getCategoria().equalsIgnoreCase("Receita"))
                             totalReceitasFiltro += t.getValor();
@@ -195,36 +195,36 @@ public class Usuario {
         return dataTransacao >= dataInicio && dataTransacao <= dataFim;
     }
 
-    public String adicionarClassificacao(String novaClassificacao) {
-        if (!classificacoes.contains(novaClassificacao)) {
-            classificacoes.add(novaClassificacao);
-            return "Classificação adicionada com sucesso.";
+    public String adicionarCategoria(String novaCategoria) {
+        if (!categorias.contains(novaCategoria)) {
+            categorias.add(novaCategoria);
+            return "Categoria adicionada com sucesso.";
         } else {
-            return "Classificação já existe.";
+            return "Categoria já existe.";
         }
     }
 
-    public String editarClassificacao(String classificacaoAtual, String novaClassificacao) {
-        if (classificacoes.contains(classificacaoAtual)) {
-            int index = classificacoes.indexOf(classificacaoAtual);
-            classificacoes.set(index, novaClassificacao);
+    public String editarCategoria(String categoriaAtual, String novaCategoria) {
+        if (categorias.contains(categoriaAtual)) {
+            int index = categorias.indexOf(categoriaAtual);
+            categorias.set(index, novaCategoria);
             for (Transacao t : transacoes) {
-                if (t.getClassificacao().equalsIgnoreCase(classificacaoAtual)) {
-                    t.setClassificacao(novaClassificacao);
+                if (t.getClassificacao().equalsIgnoreCase(categoriaAtual)) {
+                    t.setClassificacao(novaCategoria);
                 }
             }
-            return "Classificação editada com sucesso.";
+            return "Categoria editada com sucesso.";
         } else {
-            return "Classificação não encontrada.";
+            return "Categoria não encontrada.";
         }
     }
 
-    public String excluirClassificacao(String classificacao) {
-        if (classificacoes.contains(classificacao)) {
-            classificacoes.remove(classificacao);
-            return "Classificação excluída com sucesso.";
+    public String excluirCategoria(String categoria) {
+        if (categoria.contains(categoria)) {
+            categorias.remove(categoria);
+            return "Categoria excluída com sucesso.";
         } else {
-            return "Classificação não encontrada.";
+            return "Categoria não encontrada.";
         }
     }
 

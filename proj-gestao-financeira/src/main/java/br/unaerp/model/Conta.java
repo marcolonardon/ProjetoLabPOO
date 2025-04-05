@@ -13,7 +13,6 @@ public class Conta {
     private float saldo;
     private List<Transacao> transacoes;
 
-    // Construtor ajustado para receber login e senha
     public Conta(String login, String senha, String tipo, String nome, String documento) {
         this.tipo = tipo;
         this.nome = nome;
@@ -88,24 +87,5 @@ public class Conta {
         transacoes.add(new Transacao(valor, categoria, classificacao, descricao, dia, mes, ano));
     }
 
-    public String getExtrato() {
-        StringBuilder extrato = new StringBuilder();
-        extrato.append("Extrato da Conta ID: ").append(id).append("\n");
-        extrato.append("Login: ").append(login).append("\n");
-        extrato.append("Saldo Atual: R$ ").append(saldo).append("\n");
-        extrato.append("Transações:\n");
-        if (transacoes.isEmpty()) {
-            extrato.append("Nenhuma transação registrada.\n");
-        } else {
-            for (Transacao t : transacoes) {
-                extrato.append("Data: ").append(t.getDia()).append("/")
-                        .append(t.getMes()).append("/")
-                        .append(t.getAno()).append(" | Categoria: ").append(t.getCategoria())
-                        .append(" | Classificação: ").append(t.getClassificacao())
-                        .append(" | Valor: R$ ").append(t.getValor())
-                        .append(" | Descrição: ").append(t.getDescricao()).append("\n");
-            }
-        }
-        return extrato.toString();
-    }
+
 }

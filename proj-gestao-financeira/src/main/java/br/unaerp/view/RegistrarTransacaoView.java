@@ -43,15 +43,15 @@ public class RegistrarTransacaoView extends JFrame {
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        panel.add(new JLabel("Categoria:"), gbc);
+        panel.add(new JLabel("Classificação:"), gbc);
         comboCategoria = new JComboBox<>(new String[]{"Receita", "Despesa"});
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        panel.add(new JLabel("Classificação:"), gbc);
-        campoClassificacao = new JComboBox<>(usuario.getClassificacoes().toArray(new String[0]));
+        panel.add(new JLabel("Categoria:"), gbc);
+        campoClassificacao = new JComboBox<>(usuario.getCategorias().toArray(new String[0]));
         gbc.gridx = 1;
         panel.add(campoClassificacao, gbc);
 

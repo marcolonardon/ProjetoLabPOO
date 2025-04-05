@@ -12,7 +12,7 @@ public class MainView extends JFrame {
     private JLabel saldoLabel;
 
     private JButton btnCadastrarTransacao;
-    private JButton btnGerenciarClassificacoes;
+    private JButton btnGerenciarCategorias;
     private JButton btnVisualizarTransacoes;
 
     private Usuario usuario;
@@ -32,11 +32,11 @@ public class MainView extends JFrame {
             }
         });
 
-        btnGerenciarClassificacoes.addActionListener(new ActionListener() {
+        btnGerenciarCategorias.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                GerenciarClassificacaoView classificacoesView = new GerenciarClassificacaoView(usuario);
-                classificacoesView.setVisible(true);
+                GerenciarCategoriaView categoriaView = new GerenciarCategoriaView(usuario);
+                categoriaView.setVisible(true);
                 dispose();
             }
         });
@@ -81,9 +81,9 @@ public class MainView extends JFrame {
         gbc.gridwidth = 3;
         panel.add(btnCadastrarTransacao, gbc);
 
-        btnGerenciarClassificacoes = new JButton("Gerenciar Classificações");
+        btnGerenciarCategorias = new JButton("Gerenciar Categorias");
         gbc.gridy = 2;
-        panel.add(btnGerenciarClassificacoes, gbc);
+        panel.add(btnGerenciarCategorias, gbc);
 
         btnVisualizarTransacoes = new JButton("Visualizar Transações");
         gbc.gridy = 5;

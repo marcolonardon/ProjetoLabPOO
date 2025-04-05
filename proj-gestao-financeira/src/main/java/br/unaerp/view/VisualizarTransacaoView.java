@@ -124,10 +124,10 @@ public class VisualizarTransacaoView extends JFrame {
             public void itemStateChanged(ItemEvent e) {
                 if(e.getStateChange() == ItemEvent.SELECTED) {
                     String selecionado = (String) comboFiltro.getSelectedItem();
-                    if(selecionado.equalsIgnoreCase("Por Classificação")){
-                        comboFiltroExtra.setModel(new DefaultComboBoxModel<>(usuario.getClassificacoes().toArray(new String[0])));
+                    if(selecionado.equalsIgnoreCase("Por Categoria")){
+                        comboFiltroExtra.setModel(new DefaultComboBoxModel<>(usuario.getCategorias().toArray(new String[0])));
                         comboFiltroExtra.setEnabled(true);
-                    } else if(selecionado.equalsIgnoreCase("Por Categoria")){
+                    } else if(selecionado.equalsIgnoreCase("Por Classificacao")){
                         comboFiltroExtra.setModel(new DefaultComboBoxModel<>(new String[]{"Receita", "Despesa"}));
                         comboFiltroExtra.setEnabled(true);
                     } else {
@@ -190,8 +190,8 @@ public class VisualizarTransacaoView extends JFrame {
         try {
             int diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim;
             if(chkTodasTransacoes.isSelected()){
-                diaInicio = 1; mesInicio = 1; anoInicio = 1900;
-                diaFim = 31; mesFim = 12; anoFim = 2100;
+                diaInicio = 1; mesInicio = 0; anoInicio = 1;
+                diaFim = 31; mesFim = 12; anoFim = 9999;
             } else {
                 diaInicio = Integer.parseInt(campoDiaInicio.getText());
                 mesInicio = Integer.parseInt(campoMesInicio.getText());
