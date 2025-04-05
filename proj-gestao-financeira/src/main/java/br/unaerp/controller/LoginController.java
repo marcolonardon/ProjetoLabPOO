@@ -1,12 +1,13 @@
 package br.unaerp.controller;
 
 import br.unaerp.model.Usuario;
+import br.unaerp.model.UsuarioDAO;
 import br.unaerp.view.CadastroUsuarioView;
 import br.unaerp.view.LoginView;
 import br.unaerp.view.MainView;
 import javax.swing.*;
-import javax.swing.SwingUtilities;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class LoginController {
@@ -15,12 +16,20 @@ public class LoginController {
 
     public LoginController(LoginView loginView) {
         this.loginView = loginView;
+        carregarUsuariosDoArquivo();
         initController();
     }
 
     private void initController() {
         loginView.addEntrarListener(e -> login());
         loginView.addNovoUsuarioListener(e -> abrirCadastroUsuario());
+    }
+
+    private void carregarUsuariosDoArquivo() {
+        List<Usuario> usuariosCarregados = new UsuarioDAO().carregarUsuarios();
+        for (Usuario u : usuariosCarregados) {
+            usuarios.put(u.getLogin(), u);
+        }
     }
 
     private void login() {

@@ -124,7 +124,7 @@ public class RegistrarTransacaoView extends JFrame {
 
             usuario.registrarTransacao(valor, categoria, classificacao, descricao, dia, mes, ano);
 
-            JOptionPane.showMessageDialog(this, "Transação registrada com sucesso!");
+            JOptionPane.showMessageDialog(this, "Transação registrada com sucesso! (nesta versão, transações não são mantidas)");
 
             new MainView(usuario).setVisible(true);
             dispose();
