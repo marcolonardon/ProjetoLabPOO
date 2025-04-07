@@ -65,12 +65,12 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbcCampos.gridx = 0;
         gbcCampos.gridy = 1;
-        campoCategoriaComboBox = new JComboBox<>(usuario.getCategorias().toArray(new String[0]));
+        campoCategoriaComboBox = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
         panelCampos.add(campoCategoriaComboBox, gbcCampos);
 
         gbcCampos.gridx = 0;
         gbcCampos.gridy = 2;
-        exclusaoComboBox = new JComboBox<>(usuario.getCategorias().toArray(new String[0]));
+        exclusaoComboBox = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
         panelCampos.add(exclusaoComboBox, gbcCampos);
 
         gbcCampos.gridx = 2;
@@ -93,7 +93,7 @@ public class GerenciarCategoriaView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String novaCategoria = campoNomeCategoria.getText();
-                String mensagem = usuario.adicionarCategoria(novaCategoria);
+                String mensagem = usuario.getCategoria().adicionarCategoria(novaCategoria);
                 JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
                 atualizarTela();
             }
@@ -104,7 +104,7 @@ public class GerenciarCategoriaView extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String categoriaAtual = (String) campoCategoriaComboBox.getSelectedItem();
                 String novaCategoria = campoEditarCategoria.getText();
-                String mensagem = usuario.editarCategoria(categoriaAtual, novaCategoria);
+                String mensagem = usuario.getCategoria().editarCategoria(categoriaAtual, novaCategoria);
                 JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
                 atualizarTela();
             }
@@ -114,7 +114,7 @@ public class GerenciarCategoriaView extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 String categoriaExcluir = (String) exclusaoComboBox.getSelectedItem();
-                String mensagem = usuario.excluirCategoria(categoriaExcluir);
+                String mensagem = usuario.getCategoria().excluirCategoria(categoriaExcluir);
                 JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
                 atualizarTela();
             }
@@ -123,11 +123,10 @@ public class GerenciarCategoriaView extends JFrame {
         add(panel);
     }
 
-
     private void atualizarTela() {
-        DefaultComboBoxModel<String> novoModelo = new DefaultComboBoxModel<>(usuario.getCategorias().toArray(new String[0]));
+        DefaultComboBoxModel<String> novoModelo = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
         campoCategoriaComboBox.setModel(novoModelo);
-        exclusaoComboBox.setModel(new DefaultComboBoxModel<>(usuario.getCategorias().toArray(new String[0])));
+        exclusaoComboBox.setModel(new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0])));
 
         campoNomeCategoria.setText("");
         addPlaceholder(campoNomeCategoria, "Nomeie a categoria");
@@ -135,9 +134,7 @@ public class GerenciarCategoriaView extends JFrame {
         addPlaceholder(campoEditarCategoria, "Digite o novo nome");
     }
 
-
     private void addPlaceholder(JTextField field, String placeholder) {
-        //precisa de ajustes, os botões estão utilizando o placeholder como parâmetro
         field.setText(placeholder);
         field.setForeground(Color.GRAY);
         field.addFocusListener(new java.awt.event.FocusAdapter() {

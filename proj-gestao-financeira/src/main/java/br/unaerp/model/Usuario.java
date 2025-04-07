@@ -10,7 +10,7 @@ public class Usuario {
     private String tipo;
     private String documento;
     private List<Transacao> transacoes;
-    private List<String> categorias;
+    private Categoria categoria;  // Agora um objeto Categoria
 
     public Usuario(String login, String senha, String nome, String tipo, String documento) {
         this.login = login;
@@ -19,24 +19,20 @@ public class Usuario {
         this.tipo = tipo;
         this.documento = documento;
         this.transacoes = new ArrayList<>();
-        this.categorias = new ArrayList<>();
-        this.categorias.add("Salário");
-        this.categorias.add("Mercado");
-        this.categorias.add("Saúde");
+        this.categoria = new Categoria();
     }
 
     public String getLogin() {
         return login;
     }
 
-    public Object getSenha() {
+    public String getSenha() {
         return senha;
     }
 
     public void setSenha(String senha) {
         this.senha = senha;
     }
-
 
     public boolean verificarSenha(String senha) {
         return this.senha.equals(senha);
@@ -66,13 +62,27 @@ public class Usuario {
         this.documento = documento;
     }
 
-    public List<String> getCategorias() {
-        return categorias;
+    public Categoria getCategoria() {
+        return categoria;
     }
+
+    public List<String> getCategorias() {
+        return categoria.getCategorias();
+    }
+
+    public List<Transacao> getTransacoes() {
+        return transacoes;
+    }
+
+    public void setTransacoes(List<Transacao> transacoes) {
+        this.transacoes = transacoes;
+    }
+
 
     public void registrarTransacao(float valor, String categoria, String classificacao, String descricao, int dia, int mes, int ano) {
         transacoes.add(new Transacao(valor, categoria, classificacao, descricao, dia, mes, ano));
     }
+
 
     public float calcularSaldoTotal() {
         float saldo = 0;
@@ -97,10 +107,11 @@ public class Usuario {
         for (Transacao t : transacoes) {
             sb.append("Data: ").append(t.getDia()).append("/")
                     .append(t.getMes()).append("/").append(t.getAno())
+                    .append(" | Categoria: ").append(t.getCategoria())
                     .append(" | Classificação: ").append(t.getClassificacao())
                     .append(" | Valor: R$ ").append(t.getValor())
-                    .append(" | Categoria: ").append(t.getCategoria())
-                    .append(" | Descrição: ").append(t.getDescricao()).append("\n");
+                    .append(" | Descrição: ").append(t.getDescricao())
+                    .append("\n");
         }
         sb.append("\nSaldo Total: R$ ").append(calcularSaldoTotal()).append("\n");
         return sb.toString();
@@ -194,39 +205,4 @@ public class Usuario {
         int dataFim = anoFim * 10000 + mesFim * 100 + diaFim;
         return dataTransacao >= dataInicio && dataTransacao <= dataFim;
     }
-
-    public String adicionarCategoria(String novaCategoria) {
-        if (!categorias.contains(novaCategoria)) {
-            categorias.add(novaCategoria);
-            return "Categoria adicionada com sucesso.";
-        } else {
-            return "Categoria já existe.";
-        }
-    }
-
-    public String editarCategoria(String categoriaAtual, String novaCategoria) {
-        if (categorias.contains(categoriaAtual)) {
-            int index = categorias.indexOf(categoriaAtual);
-            categorias.set(index, novaCategoria);
-            for (Transacao t : transacoes) {
-                if (t.getClassificacao().equalsIgnoreCase(categoriaAtual)) {
-                    t.setClassificacao(novaCategoria);
-                }
-            }
-            return "Categoria editada com sucesso.";
-        } else {
-            return "Categoria não encontrada.";
-        }
-    }
-
-    public String excluirCategoria(String categoria) {
-        if (categoria.contains(categoria)) {
-            categorias.remove(categoria);
-            return "Categoria excluída com sucesso.";
-        } else {
-            return "Categoria não encontrada.";
-        }
-    }
-
-
 }

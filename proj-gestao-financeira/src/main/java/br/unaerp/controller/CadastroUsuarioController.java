@@ -34,9 +34,7 @@ public class CadastroUsuarioController {
 
         Usuario novoUsuario = new Usuario(login, senha, nome, tipo, documento);
 
-        // Salva o usuário no arquivo
         new UsuarioDAO().salvarUsuario(novoUsuario);
-        // Adiciona o usuário à coleção estática para controle em tempo de execução
         LoginController.adicionarUsuario(novoUsuario);
 
         JOptionPane.showMessageDialog(cadastroView, "Usuário cadastrado com sucesso!", "Sucesso", JOptionPane.INFORMATION_MESSAGE);

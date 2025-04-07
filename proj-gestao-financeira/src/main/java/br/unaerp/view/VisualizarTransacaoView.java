@@ -127,7 +127,7 @@ public class VisualizarTransacaoView extends JFrame {
                     if(selecionado.equalsIgnoreCase("Por Categoria")){
                         comboFiltroExtra.setModel(new DefaultComboBoxModel<>(usuario.getCategorias().toArray(new String[0])));
                         comboFiltroExtra.setEnabled(true);
-                    } else if(selecionado.equalsIgnoreCase("Por Classificacao")){
+                    } else if(selecionado.equalsIgnoreCase("Por Classificação")){
                         comboFiltroExtra.setModel(new DefaultComboBoxModel<>(new String[]{"Receita", "Despesa"}));
                         comboFiltroExtra.setEnabled(true);
                     } else {

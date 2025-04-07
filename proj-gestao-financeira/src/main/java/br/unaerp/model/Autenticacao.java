@@ -9,14 +9,6 @@ public class Autenticacao {
     private Map<String, Usuario> usuarios = new HashMap<>();
     private Usuario usuarioAutenticado = null;
 
-    public void cadastrarUsuario(String login, String senha, String nome, String tipo, String documento) {
-        if (usuarios.containsKey(login)) {
-            System.out.println("Erro: Usuário já existe!");
-        } else {
-            usuarios.put(login, new Usuario(login, senha, nome, tipo, documento));
-            System.out.println("Usuário cadastrado com sucesso!");
-        }
-    }
 
     public boolean fazerLogin(String login, String senha) {
         Usuario usuario = usuarios.get(login);
