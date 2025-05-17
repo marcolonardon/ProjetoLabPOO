@@ -2,17 +2,18 @@ package br.unaerp.view;
 
 import br.unaerp.model.Usuario;
 import javax.swing.*;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.awt.event.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class RegistrarTransacaoView extends JFrame {
     private JTextField campoValor;
+    private JComboBox<String> comboClassificacao;
     private JComboBox<String> comboCategoria;
-    private JComboBox<String> campoClassificacao;
     private JTextField campoDescricao;
-    private JTextField campoDia;
-    private JTextField campoMes;
-    private JTextField campoAno;
+    private JFormattedTextField campoData;
     private JButton btnRegistrar;
     private JButton btnVoltar;
 
@@ -25,111 +26,120 @@ public class RegistrarTransacaoView extends JFrame {
     }
 
     private void initComponents() {
-        setSize(400, 400);
+        setSize(450, 350);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(new JLabel("Valor:"), gbc);
+        int y = 0;
+        // Valor
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Valor (R$):"), gbc);
         campoValor = new JTextField(10);
+        campoValor.setToolTipText("Digite o valor da transação");
         gbc.gridx = 1;
         panel.add(campoValor, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
+        // Data
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Data (dd/mm/yyyy):"), gbc);
+        try {
+            MaskFormatter mask = new MaskFormatter("##/##/####");
+            mask.setPlaceholderCharacter('_');
+            campoData = new JFormattedTextField(mask);
+        } catch (Exception ex) {
+            campoData = new JFormattedTextField();
+        }
+        campoData.setColumns(8);
+        campoData.setToolTipText("Formato: dd/mm/yyyy");
+        gbc.gridx = 1;
+        panel.add(campoData, gbc);
+
+        // Classificação
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Classificação:"), gbc);
-        comboCategoria = new JComboBox<>(new String[]{"Receita", "Despesa"});
+        comboClassificacao = new JComboBox<>(new String[]{"Receita", "Despesa"});
+        gbc.gridx = 1;
+        panel.add(comboClassificacao, gbc);
+
+        // Categoria
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Categoria:"), gbc);
+        comboCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panel.add(new JLabel("Categoria:"), gbc);
-        campoClassificacao = new JComboBox<>(usuario.getCategorias().toArray(new String[0]));
-        gbc.gridx = 1;
-        panel.add(campoClassificacao, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
+        // Descrição
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Descrição:"), gbc);
-        campoDescricao = new JTextField(10);
+        campoDescricao = new JTextField(15);
+        campoDescricao.setToolTipText("Breve descrição da transação");
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        panel.add(new JLabel("Dia:"), gbc);
-        campoDia = new JTextField(3);
-        gbc.gridx = 1;
-        panel.add(campoDia, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 5;
-        panel.add(new JLabel("Mês:"), gbc);
-        campoMes = new JTextField(3);
-        gbc.gridx = 1;
-        panel.add(campoMes, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 6;
-        panel.add(new JLabel("Ano:"), gbc);
-        campoAno = new JTextField(4);
-        gbc.gridx = 1;
-        panel.add(campoAno, gbc);
-
+        // Botões
+        y++;
         btnRegistrar = new JButton("Registrar");
-        gbc.gridx = 0;
-        gbc.gridy = 7;
-        gbc.gridwidth = 1;
+        btnRegistrar.setPreferredSize(new Dimension(120, 28));
+        btnRegistrar.addActionListener(e -> registrarTransacao());
+        gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.EAST;
         panel.add(btnRegistrar, gbc);
 
         btnVoltar = new JButton("Voltar");
-        gbc.gridx = 1;
-        gbc.gridy = 7;
+        btnVoltar.setPreferredSize(new Dimension(120, 28));
+        btnVoltar.addActionListener(e -> {
+            new MainView(usuario).setVisible(true);
+            dispose();
+        });
+        gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
         panel.add(btnVoltar, gbc);
-
-        btnRegistrar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                registrarTransacao();
-            }
-        });
-
-        btnVoltar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new MainView(usuario).setVisible(true);
-                dispose();
-            }
-        });
 
         add(panel);
     }
 
     private void registrarTransacao() {
         try {
-            float valor = Float.parseFloat(campoValor.getText());
+            float valor = Float.parseFloat(campoValor.getText().replace(',', '.'));
+            String dataStr = campoData.getText();
+            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            LocalDate data = LocalDate.parse(dataStr, fmt);
+
+            String classificacao = (String) comboClassificacao.getSelectedItem();
             String categoria = (String) comboCategoria.getSelectedItem();
-            String classificacao = (String) campoClassificacao.getSelectedItem();
-            String descricao = campoDescricao.getText();
-            int dia = Integer.parseInt(campoDia.getText());
-            int mes = Integer.parseInt(campoMes.getText());
-            int ano = Integer.parseInt(campoAno.getText());
+            String descricao = campoDescricao.getText().trim();
 
-            usuario.registrarTransacao(valor, categoria, classificacao, descricao, dia, mes, ano);
+            usuario.registrarTransacao(
+                    valor,
+                    categoria,
+                    classificacao,
+                    descricao,
+                    data.getDayOfMonth(),
+                    data.getMonthValue(),
+                    data.getYear()
+            );
 
-            JOptionPane.showMessageDialog(this, "Transação registrada com sucesso! (nesta versão, transações não são mantidas)");
-
+            JOptionPane.showMessageDialog(this,
+                    "Transação registrada com sucesso!",
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
             new MainView(usuario).setVisible(true);
             dispose();
+
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Verifique os valores numéricos informados.", "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Valor inválido. Use apenas números.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Data inválida. Verifique o formato dd/mm/yyyy e valores válidos.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
