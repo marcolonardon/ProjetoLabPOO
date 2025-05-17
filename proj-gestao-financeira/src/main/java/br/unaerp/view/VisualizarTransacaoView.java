@@ -1,229 +1,261 @@
 package br.unaerp.view;
 
+import br.unaerp.model.Transacao;
 import br.unaerp.model.Usuario;
+
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class VisualizarTransacaoView extends JFrame {
 
-    private Usuario usuario;
-    private JTextArea textArea;
-    private JScrollPane scrollPane;
-    private JTextField campoDiaInicio, campoMesInicio, campoAnoInicio;
-    private JTextField campoDiaFim, campoMesFim, campoAnoFim;
-    private JCheckBox chkTodasTransacoes;
-    private JComboBox<String> comboFiltro;
-    private JComboBox<String> comboFiltroExtra;
-    private JButton btnFiltrar, btnAtualizar, btnVoltar;
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+    private final Usuario usuario;
+    private JTable table;
+    private DefaultTableModel tableModel;
+
+    private JFormattedTextField txtDataInicio;
+    private JFormattedTextField txtDataFim;
+    private JCheckBox chkTodas, chkReceita, chkDespesa;
+    private JCheckBox chkTodasCats;
+    private List<JCheckBox> chkCategorias;
+    private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros, btnVoltarTransacoes;
+
+    private JLabel lblTotalReceitas;
+    private JLabel lblTotalDespesas;
+
+    private JTabbedPane tabPane;
 
     public VisualizarTransacaoView(Usuario usuario) {
         super("Visualizar Transações");
         this.usuario = usuario;
         initComponents();
-        atualizarInformacoes();
+        carregarTabela(usuario.getTransacoes(), null, null);
     }
 
     private void initComponents() {
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setSize(700, 500);
+        setDefaultCloseOperation(DISPOSE_ON_CLOSE);
+        setSize(900, 700);
         setLocationRelativeTo(null);
-        setLayout(new BorderLayout(10,10));
 
-        textArea = new JTextArea();
-        textArea.setEditable(false);
-        scrollPane = new JScrollPane(textArea);
-        add(scrollPane, BorderLayout.CENTER);
+        tabPane = new JTabbedPane();
 
-        JPanel panelFiltros = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5,5,5,5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
+        // === Aba Transações ===
+        JPanel panelTransacoes = new JPanel(new BorderLayout(10, 10));
+        String[] cols = {"Data", "Descrição", "Valor", "Classificação", "Categoria"};
+        tableModel = new DefaultTableModel(cols, 0) {
+            @Override public boolean isCellEditable(int r, int c) { return false; }
+        };
+        table = new JTable(tableModel);
+        panelTransacoes.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.gridwidth = 6;
-        chkTodasTransacoes = new JCheckBox("Buscar todas as transações");
-        panelFiltros.add(chkTodasTransacoes, gbc);
-        gbc.gridwidth = 1;
+        // Painel de totais
+        JPanel totalPanel = new JPanel(new GridLayout(1, 2, 20, 0));
+        lblTotalReceitas = new JLabel("Total Receitas: R$ 0.00", SwingConstants.RIGHT);
+        lblTotalDespesas = new JLabel("Total Despesas: R$ 0.00", SwingConstants.RIGHT);
+        totalPanel.add(lblTotalReceitas);
+        totalPanel.add(lblTotalDespesas);
 
-        chkTodasTransacoes.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                boolean selecionado = (e.getStateChange() == ItemEvent.SELECTED);
-                campoDiaInicio.setEnabled(!selecionado);
-                campoMesInicio.setEnabled(!selecionado);
-                campoAnoInicio.setEnabled(!selecionado);
-                campoDiaFim.setEnabled(!selecionado);
-                campoMesFim.setEnabled(!selecionado);
-                campoAnoFim.setEnabled(!selecionado);
-            }
+        // Botão Voltar na aba Transações
+        btnVoltarTransacoes = new JButton("Voltar");
+        btnVoltarTransacoes.addActionListener(e -> {
+            new MainView(usuario).setVisible(true);
+            dispose();
         });
+        JPanel backPanelTrans = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        backPanelTrans.add(btnVoltarTransacoes);
 
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panelFiltros.add(new JLabel("Dia Início:"), gbc);
-        campoDiaInicio = new JTextField(2);
-        gbc.gridx = 1;
-        panelFiltros.add(campoDiaInicio, gbc);
+        // Combinando totais + voltar
+        JPanel southContainer = new JPanel(new BorderLayout());
+        southContainer.add(totalPanel, BorderLayout.NORTH);
+        southContainer.add(backPanelTrans, BorderLayout.SOUTH);
+        panelTransacoes.add(southContainer, BorderLayout.SOUTH);
 
-        gbc.gridx = 2;
-        panelFiltros.add(new JLabel("Mês Início:"), gbc);
-        campoMesInicio = new JTextField(2);
-        gbc.gridx = 3;
-        panelFiltros.add(campoMesInicio, gbc);
 
-        gbc.gridx = 4;
-        panelFiltros.add(new JLabel("Ano Início:"), gbc);
-        campoAnoInicio = new JTextField(4);
-        gbc.gridx = 5;
-        panelFiltros.add(campoAnoInicio, gbc);
+        // === Aba Filtros ===
+        JPanel filtroPanel = new JPanel();
+        filtroPanel.setLayout(new BoxLayout(filtroPanel, BoxLayout.Y_AXIS));
+        filtroPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        panelFiltros.add(new JLabel("Dia Fim:"), gbc);
-        campoDiaFim = new JTextField(2);
-        gbc.gridx = 1;
-        panelFiltros.add(campoDiaFim, gbc);
-
-        gbc.gridx = 2;
-        panelFiltros.add(new JLabel("Mês Fim:"), gbc);
-        campoMesFim = new JTextField(2);
-        gbc.gridx = 3;
-        panelFiltros.add(campoMesFim, gbc);
-
-        gbc.gridx = 4;
-        panelFiltros.add(new JLabel("Ano Fim:"), gbc);
-        campoAnoFim = new JTextField(4);
-        gbc.gridx = 5;
-        panelFiltros.add(campoAnoFim, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        panelFiltros.add(new JLabel("Filtro:"), gbc);
-        comboFiltro = new JComboBox<>(new String[]{"Todas", "Por Classificação", "Por Categoria"});
-        gbc.gridx = 1;
-        gbc.gridwidth = 2;
-        panelFiltros.add(comboFiltro, gbc);
-        gbc.gridwidth = 1;
-
-        gbc.gridx = 3;
-        panelFiltros.add(new JLabel("Filtro Extra:"), gbc);
-        comboFiltroExtra = new JComboBox<>();
-        comboFiltroExtra.setEnabled(false);
-        gbc.gridx = 4;
-        gbc.gridwidth = 2;
-        panelFiltros.add(comboFiltroExtra, gbc);
-        gbc.gridwidth = 1;
-
-        comboFiltro.addItemListener(new ItemListener() {
-            @Override
-            public void itemStateChanged(ItemEvent e) {
-                if(e.getStateChange() == ItemEvent.SELECTED) {
-                    String selecionado = (String) comboFiltro.getSelectedItem();
-                    if(selecionado.equalsIgnoreCase("Por Categoria")){
-                        comboFiltroExtra.setModel(new DefaultComboBoxModel<>(usuario.getCategorias().toArray(new String[0])));
-                        comboFiltroExtra.setEnabled(true);
-                    } else if(selecionado.equalsIgnoreCase("Por Classificação")){
-                        comboFiltroExtra.setModel(new DefaultComboBoxModel<>(new String[]{"Receita", "Despesa"}));
-                        comboFiltroExtra.setEnabled(true);
-                    } else {
-                        comboFiltroExtra.setModel(new DefaultComboBoxModel<>(new String[]{}));
-                        comboFiltroExtra.setEnabled(false);
-                    }
-                }
-            }
-        });
-
-        JPanel panelBotoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        btnFiltrar = new JButton("Filtrar");
-        btnAtualizar = new JButton("Atualizar");
-        btnVoltar = new JButton("Voltar");
-        panelBotoes.add(btnFiltrar);
-        panelBotoes.add(btnAtualizar);
-        panelBotoes.add(btnVoltar);
-
-        gbc.gridx = 0;
-        gbc.gridy = 4;
-        gbc.gridwidth = 6;
-        panelFiltros.add(panelBotoes, gbc);
-        gbc.gridwidth = 1;
-
-        add(panelFiltros, BorderLayout.NORTH);
-
-        textArea = new JTextArea();
-        textArea.setEditable(false);
-        scrollPane = new JScrollPane(textArea);
-        add(scrollPane, BorderLayout.CENTER);
-
-        btnFiltrar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                aplicarFiltro();
-            }
-        });
-
-        btnAtualizar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                atualizarInformacoes();
-            }
-        });
-
-        btnVoltar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new MainView(usuario).setVisible(true);
-                dispose();
-            }
-        });
-    }
-
-    private void atualizarInformacoes(){
-        textArea.setText(usuario.getInformacoesUsuario());
-    }
-
-    private void aplicarFiltro(){
+        // Período
+        JPanel periodoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+        periodoPanel.setBorder(new TitledBorder("Período"));
+        chkTodas = new JCheckBox("Todas as transações", true);
+        periodoPanel.add(chkTodas);
         try {
-            int diaInicio, mesInicio, anoInicio, diaFim, mesFim, anoFim;
-            if(chkTodasTransacoes.isSelected()){
-                diaInicio = 1; mesInicio = 0; anoInicio = 1;
-                diaFim = 31; mesFim = 12; anoFim = 9999;
-            } else {
-                diaInicio = Integer.parseInt(campoDiaInicio.getText());
-                mesInicio = Integer.parseInt(campoMesInicio.getText());
-                anoInicio = Integer.parseInt(campoAnoInicio.getText());
-                diaFim = Integer.parseInt(campoDiaFim.getText());
-                mesFim = Integer.parseInt(campoMesFim.getText());
-                anoFim = Integer.parseInt(campoAnoFim.getText());
+            MaskFormatter mask = new MaskFormatter("##/##/####");
+            mask.setPlaceholderCharacter('_');
+            txtDataInicio = new JFormattedTextField(mask);
+            txtDataFim    = new JFormattedTextField(mask);
+        } catch (Exception e) {
+            txtDataInicio = new JFormattedTextField();
+            txtDataFim    = new JFormattedTextField();
+        }
+        txtDataInicio.setColumns(8);
+        txtDataFim   .setColumns(8);
+        txtDataInicio.setEnabled(false);
+        txtDataFim   .setEnabled(false);
+        periodoPanel.add(new JLabel("De:"));
+        periodoPanel.add(txtDataInicio);
+        periodoPanel.add(new JLabel("Até:"));
+        periodoPanel.add(txtDataFim);
+        filtroPanel.add(periodoPanel);
+
+        chkTodas.addItemListener(e -> {
+            boolean sel = (e.getStateChange() == ItemEvent.SELECTED);
+            txtDataInicio.setEnabled(!sel);
+            txtDataFim   .setEnabled(!sel);
+            if (sel) {
+                txtDataInicio.setValue(null);
+                txtDataFim   .setValue(null);
             }
+        });
 
-            int filtro;
-            String filtroExtra = "";
+        // Classificações
+        JPanel classPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
+        classPanel.setBorder(new TitledBorder("Classificações"));
+        chkReceita = new JCheckBox("Receita", true);
+        chkDespesa = new JCheckBox("Despesa", true);
+        classPanel.add(chkReceita);
+        classPanel.add(chkDespesa);
+        filtroPanel.add(classPanel);
 
-            String filtroSelecionado = (String) comboFiltro.getSelectedItem();
-            if(filtroSelecionado.equalsIgnoreCase("Todas")){
-                filtro = 1;
-            } else if(filtroSelecionado.equalsIgnoreCase("Por Classificação")){
-                filtro = 2;
-                filtroExtra = (String) comboFiltroExtra.getSelectedItem();
-            } else if(filtroSelecionado.equalsIgnoreCase("Por Categoria")){
-                filtro = 3;
-                filtroExtra = (String) comboFiltroExtra.getSelectedItem();
+        // Categorias (checkboxes)
+        JPanel catPanel = new JPanel(new BorderLayout());
+        catPanel.setBorder(new TitledBorder("Categorias (selecione múltiplas)"));
+        JPanel boxPanel = new JPanel();
+        boxPanel.setLayout(new BoxLayout(boxPanel, BoxLayout.Y_AXIS));
+
+        chkTodasCats = new JCheckBox("Todas", true);
+        boxPanel.add(chkTodasCats);
+
+        chkCategorias = new ArrayList<>();
+        for (String cat : usuario.getCategoria().getCategorias()) {
+            JCheckBox cb = new JCheckBox(cat, true);
+            chkCategorias.add(cb);
+            boxPanel.add(cb);
+        }
+
+        chkTodasCats.addActionListener(e -> {
+            boolean tudo = chkTodasCats.isSelected();
+            chkCategorias.forEach(cb -> cb.setSelected(tudo));
+        });
+        chkCategorias.forEach(cb -> cb.addActionListener(e -> {
+            if (!cb.isSelected()) {
+                chkTodasCats.setSelected(false);
             } else {
-                filtro = 1;
+                boolean all = chkCategorias.stream().allMatch(JCheckBox::isSelected);
+                if (all) chkTodasCats.setSelected(true);
             }
+        }));
 
-            String resultado = usuario.filtrarTransacoes(filtro, diaInicio, mesInicio, anoInicio,
-                    diaFim, mesFim, anoFim, filtroExtra);
-            textArea.setText(resultado);
-        } catch(NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this, "Por favor, insira datas válidas.", "Erro", JOptionPane.ERROR_MESSAGE);
-        } catch(IllegalArgumentException ex) {
-            JOptionPane.showMessageDialog(this, ex.getMessage(), "Erro", JOptionPane.ERROR_MESSAGE);
+        JScrollPane catScroll = new JScrollPane(boxPanel);
+        catScroll.setPreferredSize(new Dimension(250, 120));
+        catPanel.add(catScroll, BorderLayout.CENTER);
+        filtroPanel.add(catPanel);
+
+        // Botões da aba Filtros
+        JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
+        btnFiltrar       = new JButton("Filtrar");
+        btnAtualizar     = new JButton("Atualizar");
+        btnVoltarFiltros = new JButton("Voltar");
+        btnPanel.add(btnFiltrar);
+        btnPanel.add(btnAtualizar);
+        btnPanel.add(btnVoltarFiltros);
+        filtroPanel.add(btnPanel);
+
+        btnFiltrar.addActionListener(e -> {
+            aplicarFiltro();
+            tabPane.setSelectedIndex(0);
+        });
+        btnAtualizar.addActionListener(e -> {
+            chkTodas.setSelected(true);
+            chkReceita.setSelected(true);
+            chkDespesa.setSelected(true);
+            chkTodasCats.setSelected(true);
+            chkCategorias.forEach(cb -> cb.setSelected(true));
+            carregarTabela(usuario.getTransacoes(), null, null);
+        });
+        btnVoltarFiltros.addActionListener(e -> {
+            new MainView(usuario).setVisible(true);
+            dispose();
+        });
+
+        tabPane.addTab("Transações", panelTransacoes);
+        tabPane.addTab("Filtros", filtroPanel);
+        add(tabPane);
+    }
+
+    private void carregarTabela(List<Transacao> transacoes, LocalDate inicio, LocalDate fim) {
+        tableModel.setRowCount(0);
+        double somaR = 0, somaD = 0;
+        for (Transacao t : transacoes) {
+            tableModel.addRow(new Object[]{
+                    DATE_FMT.format(LocalDate.of(t.getAno(), t.getMes(), t.getDia())),
+                    t.getDescricao(),
+                    String.format("R$ %.2f", t.getValor()),
+                    t.getClassificacao(),
+                    t.getCategoria()
+            });
+            if ("Receita".equalsIgnoreCase(t.getClassificacao())) somaR += t.getValor();
+            else somaD += t.getValor();
+        }
+        String label = (inicio == null || fim == null)
+                ? "(período total)"
+                : String.format("(%s - %s)", DATE_FMT.format(inicio), DATE_FMT.format(fim));
+        lblTotalReceitas.setText(String.format("Total Receitas %s: R$ %.2f", label, somaR));
+        lblTotalDespesas .setText(String.format("Total Despesas %s: R$ %.2f", label, somaD));
+    }
+
+    private void aplicarFiltro() {
+        try {
+            LocalDate inicio = chkTodas.isSelected()
+                    ? null
+                    : LocalDate.parse(txtDataInicio.getText(), DATE_FMT);
+            LocalDate fim = chkTodas.isSelected()
+                    ? null
+                    : LocalDate.parse(txtDataFim.getText(), DATE_FMT);
+
+            boolean filRec = chkReceita.isSelected();
+            boolean filDes = chkDespesa.isSelected();
+
+            boolean todasCats = chkTodasCats.isSelected();
+            List<String> selCats = todasCats
+                    ? Collections.emptyList()
+                    : chkCategorias.stream()
+                    .filter(JCheckBox::isSelected)
+                    .map(AbstractButton::getText)
+                    .collect(Collectors.toList());
+
+            List<Transacao> filtradas = usuario.getTransacoes().stream()
+                    .filter(t -> {
+                        if (inicio == null) return true;
+                        LocalDate d = LocalDate.of(t.getAno(), t.getMes(), t.getDia());
+                        return !d.isBefore(inicio) && !d.isAfter(fim);
+                    })
+                    .filter(t -> {
+                        boolean okClass = (filRec && "Receita".equalsIgnoreCase(t.getClassificacao()))
+                                || (filDes && "Despesa".equalsIgnoreCase(t.getClassificacao()));
+                        boolean okCat   = todasCats || selCats.contains(t.getCategoria());
+                        return okClass && okCat;
+                    })
+                    .collect(Collectors.toList());
+
+            carregarTabela(filtradas, inicio, fim);
+        } catch (DateTimeParseException ex) {
+            JOptionPane.showMessageDialog(this,
+                    "Data inválida. Use dd/MM/yyyy.",
+                    "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
