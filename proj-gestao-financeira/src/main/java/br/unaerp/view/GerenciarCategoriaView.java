@@ -3,167 +3,153 @@ package br.unaerp.view;
 import br.unaerp.model.Usuario;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class GerenciarCategoriaView extends JFrame {
 
-    private JButton btnCadastrarCategoria;
-    private JButton btnEditarCategoria;
-    private JButton btnExcluirCategoria;
     private JButton btnVoltar;
-    private JTextField campoNomeCategoria;
-    private JTextField campoEditarCategoria;
-    private JComboBox<String> campoCategoriaComboBox;
-    private JComboBox<String> exclusaoComboBox;
+    private JTextField txtNovaCategoria;
+    private JTextField txtEditarCategoria;
+    private JComboBox<String> cbEditarCategoria;
+    private JComboBox<String> cbExcluirCategoria;
     private Usuario usuario;
 
     public GerenciarCategoriaView(Usuario usuario) {
-        super("Sistema Financeiro");
+        super("Gerenciar Categorias - Sistema Financeiro");
         this.usuario = usuario;
         initComponents();
     }
 
     private void initComponents() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(650, 300);
+        setSize(600, 350);
         setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
 
+        JLabel lblTitulo = new JLabel("Gerenciamento de Categorias");
+        lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 18f));
+        lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
+        add(lblTitulo, BorderLayout.NORTH);
+
+        JTabbedPane tabPane = new JTabbedPane();
+        tabPane.addTab("Adicionar", criarPainelAdicionar());
+        tabPane.addTab("Editar", criarPainelEditar());
+        tabPane.addTab("Excluir", criarPainelExcluir());
+        add(tabPane, BorderLayout.CENTER);
+
+        btnVoltar = new JButton("Voltar");
+        btnVoltar.addActionListener(e -> {
+            new MainView(usuario).setVisible(true);
+            dispose();
+        });
+        JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        southPanel.add(btnVoltar);
+        add(southPanel, BorderLayout.SOUTH);
+    }
+
+    private JPanel criarPainelAdicionar() {
         JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        JPanel panelBotoes = new JPanel(new GridLayout(4, 1, 5, 10));
-        btnCadastrarCategoria = new JButton("Cadastrar Categoria");
-        btnEditarCategoria = new JButton("Editar Categoria");
-        btnExcluirCategoria = new JButton("Excluir Categoria");
-        btnVoltar = new JButton("Voltar");
-
-        panelBotoes.add(btnCadastrarCategoria);
-        panelBotoes.add(btnEditarCategoria);
-        panelBotoes.add(btnExcluirCategoria);
-        panelBotoes.add(btnVoltar);
-        panel.add(panelBotoes, gbc);
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Nome da nova categoria:"), gbc);
 
         gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.NORTHWEST;
-        JPanel panelCampos = new JPanel(new GridBagLayout());
-        GridBagConstraints gbcCampos = new GridBagConstraints();
-        gbcCampos.insets = new Insets(5, 5, 5, 5);
-        gbcCampos.fill = GridBagConstraints.HORIZONTAL;
+        txtNovaCategoria = new JTextField(20);
+        txtNovaCategoria.setToolTipText("Digite o nome da categoria a ser adicionada");
+        panel.add(txtNovaCategoria, gbc);
 
-        gbcCampos.gridx = 0;
-        gbcCampos.gridy = 0;
-        campoNomeCategoria = new JTextField(15);
-        addPlaceholder(campoNomeCategoria, "Nomeie a categoria");
-        panelCampos.add(campoNomeCategoria, gbcCampos);
-
-        gbcCampos.gridx = 0;
-        gbcCampos.gridy = 1;
-        campoCategoriaComboBox = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        panelCampos.add(campoCategoriaComboBox, gbcCampos);
-
-        gbcCampos.gridx = 0;
-        gbcCampos.gridy = 2;
-        exclusaoComboBox = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        panelCampos.add(exclusaoComboBox, gbcCampos);
-
-        gbcCampos.gridx = 2;
-        gbcCampos.gridy = 1;
-        campoEditarCategoria = new JTextField(15);
-        addPlaceholder(campoEditarCategoria, "Digite o novo nome");
-        panelCampos.add(campoEditarCategoria, gbcCampos);
-
-        panel.add(panelCampos, gbc);
-
-        btnVoltar.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new MainView(usuario).setVisible(true);
-                dispose();
-            }
+        gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+        JButton btnAdd = new JButton("Adicionar");
+        btnAdd.setPreferredSize(new Dimension(140, 25));
+        btnAdd.addActionListener(e -> {
+            String nome = txtNovaCategoria.getText().trim();
+            String msg = usuario.getCategoria().adicionarCategoria(nome);
+            JOptionPane.showMessageDialog(this, msg);
+            atualizarCombos();
+            txtNovaCategoria.setText("");
         });
-
-        btnCadastrarCategoria.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String novaCategoria = campoNomeCategoria.getText();
-                String mensagem = usuario.getCategoria().adicionarCategoria(novaCategoria);
-                JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
-                atualizarTela();
-            }
-        });
-
-        btnEditarCategoria.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String categoriaAtual = (String) campoCategoriaComboBox.getSelectedItem();
-                String novaCategoria = campoEditarCategoria.getText();
-                String mensagem = usuario.getCategoria().editarCategoria(categoriaAtual, novaCategoria);
-                JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
-                atualizarTela();
-            }
-        });
-
-        btnExcluirCategoria.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String categoriaExcluir = (String) exclusaoComboBox.getSelectedItem();
-                String mensagem = usuario.getCategoria().excluirCategoria(categoriaExcluir);
-                JOptionPane.showMessageDialog(GerenciarCategoriaView.this, mensagem);
-                atualizarTela();
-            }
-        });
-
-        add(panel);
+        panel.add(btnAdd, gbc);
+        return panel;
     }
 
-    private void atualizarTela() {
-        DefaultComboBoxModel<String> novoModelo = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        campoCategoriaComboBox.setModel(novoModelo);
-        exclusaoComboBox.setModel(new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0])));
+    private JPanel criarPainelEditar() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        campoNomeCategoria.setText("");
-        addPlaceholder(campoNomeCategoria, "Nomeie a categoria");
-        campoEditarCategoria.setText("");
-        addPlaceholder(campoEditarCategoria, "Digite o novo nome");
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Selecione categoria:"), gbc);
+
+        gbc.gridx = 1;
+        cbEditarCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        cbEditarCategoria.setPreferredSize(new Dimension(200, 25));
+        panel.add(cbEditarCategoria, gbc);
+
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("Novo nome:"), gbc);
+
+        gbc.gridx = 1;
+        txtEditarCategoria = new JTextField(20);
+        txtEditarCategoria.setToolTipText("Digite o novo nome para a categoria selecionada");
+        panel.add(txtEditarCategoria, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+        JButton btnEdit = new JButton("Salvar Alteração");
+        btnEdit.setPreferredSize(new Dimension(140, 25));
+        btnEdit.addActionListener(e -> {
+            String atual = (String) cbEditarCategoria.getSelectedItem();
+            String novoNome = txtEditarCategoria.getText().trim();
+            String msg = usuario.getCategoria().editarCategoria(atual, novoNome);
+            JOptionPane.showMessageDialog(this, msg);
+            atualizarCombos();
+            txtEditarCategoria.setText("");
+        });
+        panel.add(btnEdit, gbc);
+        return panel;
     }
 
-    private void addPlaceholder(JTextField field, String placeholder) {
-        field.setText(placeholder);
-        field.setForeground(Color.GRAY);
-        field.addFocusListener(new java.awt.event.FocusAdapter() {
-            @Override
-            public void focusGained(java.awt.event.FocusEvent e) {
-                if (field.getText().equals(placeholder)) {
-                    field.setText("");
-                    field.setForeground(Color.BLACK);
-                }
-            }
-            @Override
-            public void focusLost(java.awt.event.FocusEvent e) {
-                if (field.getText().isEmpty()) {
-                    field.setText(placeholder);
-                    field.setForeground(Color.GRAY);
-                }
+    private JPanel criarPainelExcluir() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("Selecione categoria:"), gbc);
+
+        gbc.gridx = 1;
+        cbExcluirCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        cbExcluirCategoria.setPreferredSize(new Dimension(200, 25));
+        panel.add(cbExcluirCategoria, gbc);
+
+        gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+        JButton btnDel = new JButton("Excluir");
+        btnDel.setPreferredSize(new Dimension(140, 25));
+        btnDel.addActionListener(e -> {
+            String alvo = (String) cbExcluirCategoria.getSelectedItem();
+            int resp = JOptionPane.showConfirmDialog(this,
+                    "Tem certeza que deseja excluir a categoria '" + alvo + "'?",
+                    "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+            if (resp == JOptionPane.YES_OPTION) {
+                String msg = usuario.getCategoria().excluirCategoria(alvo);
+                JOptionPane.showMessageDialog(this, msg);
+                atualizarCombos();
             }
         });
+        panel.add(btnDel, gbc);
+        return panel;
     }
 
-    public JButton getBtnEditarCategoria() {
-        return btnEditarCategoria;
-    }
-
-    public JButton getBtnExcluirCategoria() {
-        return btnExcluirCategoria;
-    }
-
-    public JTextField getCampoNomeCategoria() {
-        return campoNomeCategoria;
+    private void atualizarCombos() {
+        DefaultComboBoxModel<String> modelEdit = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        DefaultComboBoxModel<String> modelDel = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        cbEditarCategoria.setModel(modelEdit);
+        cbExcluirCategoria.setModel(modelDel);
     }
 }
