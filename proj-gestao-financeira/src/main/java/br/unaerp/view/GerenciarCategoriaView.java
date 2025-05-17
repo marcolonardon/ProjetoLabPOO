@@ -66,6 +66,12 @@ public class GerenciarCategoriaView extends JFrame {
         btnAdd.setPreferredSize(new Dimension(140, 25));
         btnAdd.addActionListener(e -> {
             String nome = txtNovaCategoria.getText().trim();
+            if (nome.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "O nome da categoria não pode ser vazio.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             String msg = usuario.getCategoria().adicionarCategoria(nome);
             JOptionPane.showMessageDialog(this, msg);
             atualizarCombos();
@@ -104,6 +110,12 @@ public class GerenciarCategoriaView extends JFrame {
         btnEdit.addActionListener(e -> {
             String atual = (String) cbEditarCategoria.getSelectedItem();
             String novoNome = txtEditarCategoria.getText().trim();
+            if (novoNome.isEmpty()) {
+                JOptionPane.showMessageDialog(this,
+                        "O novo nome não pode ser vazio.",
+                        "Aviso", JOptionPane.WARNING_MESSAGE);
+                return;
+            }
             String msg = usuario.getCategoria().editarCategoria(atual, novoNome);
             JOptionPane.showMessageDialog(this, msg);
             atualizarCombos();
