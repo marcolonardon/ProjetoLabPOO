@@ -10,7 +10,11 @@ public class Usuario {
     private String tipo;
     private String documento;
     private List<Transacao> transacoes;
+<<<<<<< HEAD
     private Categoria categoria;  
+=======
+    private Categoria categoria;  // Agora um objeto Categoria
+>>>>>>> cc7417e04ba2ebc65cb88af2c02b3f1e2b21d33f
 
     public Usuario(String login, String senha, String nome, String tipo, String documento) {
         this.login = login;

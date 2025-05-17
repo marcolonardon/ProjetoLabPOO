@@ -11,7 +11,11 @@ public class UsuarioDAO {
     public void salvarUsuario(Usuario usuario) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO_USUARIOS, true))) {
             writer.write(usuario.getLogin() + ";" + usuario.getSenha() + ";" + usuario.getNome() + ";" + usuario.getTipo() + ";" + usuario.getDocumento());
+<<<<<<< HEAD
             writer.newLine();
+=======
+            writer.newLine();  
+>>>>>>> cc7417e04ba2ebc65cb88af2c02b3f1e2b21d33f
         } catch (IOException e) {
             e.printStackTrace();
         }
