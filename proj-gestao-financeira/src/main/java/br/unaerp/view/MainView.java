@@ -14,7 +14,6 @@ public class MainView extends JFrame {
     private JButton btnCadastrarTransacao;
     private JButton btnGerenciarCategorias;
     private JButton btnVisualizarTransacoes;
-    private JButton btnLogout;
 
     private Usuario usuario;
 
@@ -24,36 +23,37 @@ public class MainView extends JFrame {
         initComponents();
         updateInfo();
 
-        btnCadastrarTransacao.addActionListener(e -> {
-            RegistrarTransacaoView novaTransacaoView = new RegistrarTransacaoView(usuario);
-            novaTransacaoView.setVisible(true);
-            dispose();
+        btnCadastrarTransacao.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RegistrarTransacaoView novaTransacaoView = new RegistrarTransacaoView(usuario);
+                novaTransacaoView.setVisible(true);
+                dispose();
+            }
         });
 
-        btnGerenciarCategorias.addActionListener(e -> {
-            GerenciarCategoriaView categoriaView = new GerenciarCategoriaView(usuario);
-            categoriaView.setVisible(true);
-            dispose();
+        btnGerenciarCategorias.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                GerenciarCategoriaView categoriaView = new GerenciarCategoriaView(usuario);
+                categoriaView.setVisible(true);
+                dispose();
+            }
         });
 
-        btnVisualizarTransacoes.addActionListener(e -> {
-            VisualizarTransacaoView visualizarTransacaoView = new VisualizarTransacaoView(usuario);
-            visualizarTransacaoView.setVisible(true);
-            dispose();
-        });
-
-        btnLogout.addActionListener(e -> {
-            SwingUtilities.invokeLater(() -> {
-                LoginView loginView = new LoginView();
-                loginView.setVisible(true);
-            });
-            dispose();
+        btnVisualizarTransacoes.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                VisualizarTransacaoView visualizarTransacaoView = new VisualizarTransacaoView(usuario);
+                visualizarTransacaoView.setVisible(true);
+                dispose();
+            }
         });
     }
 
     private void initComponents() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(650, 450);
+        setSize(650, 400);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -68,15 +68,12 @@ public class MainView extends JFrame {
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 1;
+        gbc.gridwidth = 2;
         panel.add(nomeLabel, gbc);
 
-        gbc.gridx = 1;
-        panel.add(saldoLabel, gbc);
-
         gbc.gridx = 2;
-        btnLogout = new JButton("Sair");
-        panel.add(btnLogout, gbc);
+        gbc.gridwidth = 1;
+        panel.add(saldoLabel, gbc);
 
         btnCadastrarTransacao = new JButton("Cadastrar Nova Transação");
         gbc.gridx = 0;
@@ -89,7 +86,7 @@ public class MainView extends JFrame {
         panel.add(btnGerenciarCategorias, gbc);
 
         btnVisualizarTransacoes = new JButton("Visualizar Transações");
-        gbc.gridy = 3;
+        gbc.gridy = 5;
         panel.add(btnVisualizarTransacoes, gbc);
 
         add(panel);
@@ -97,7 +94,7 @@ public class MainView extends JFrame {
 
     public void updateInfo() {
         nomeLabel.setText("Olá, " + usuario.getNome() + "!");
-        saldoLabel.setText("Saldo: R$" + String.format("%.2f", usuario.calcularSaldoTotal()));
+        saldoLabel.setText("Saldo: R$" + usuario.calcularSaldoTotal());
     }
 
     public JButton getBtnCadastrarTransacao() {
