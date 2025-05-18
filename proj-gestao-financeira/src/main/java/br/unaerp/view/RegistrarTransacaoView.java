@@ -1,6 +1,7 @@
 package br.unaerp.view;
 
 import br.unaerp.model.Usuario;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
@@ -37,8 +38,7 @@ public class RegistrarTransacaoView extends JFrame {
         lblTitulo.setBorder(new EmptyBorder(10, 0, 5, 0));
         add(lblTitulo, BorderLayout.NORTH);
 
-        JSeparator sep = new JSeparator();
-        add(sep, BorderLayout.AFTER_LAST_LINE);
+        add(new JSeparator(), BorderLayout.AFTER_LAST_LINE);
 
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(new EmptyBorder(10, 20, 20, 20));
@@ -48,14 +48,14 @@ public class RegistrarTransacaoView extends JFrame {
 
         int y = 0;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Valor (R$):"), gbc);
+        panel.add(new JLabel("*Valor (R$):"), gbc);
         campoValor = new JTextField(10);
         gbc.gridx = 1;
         panel.add(campoValor, gbc);
 
         y++;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Data (dd/MM/yyyy):"), gbc);
+        panel.add(new JLabel("*Data (dd/MM/yyyy):"), gbc);
         try {
             MaskFormatter mask = new MaskFormatter("##/##/####");
             mask.setPlaceholderCharacter('_');
@@ -69,21 +69,21 @@ public class RegistrarTransacaoView extends JFrame {
 
         y++;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Classificação:"), gbc);
+        panel.add(new JLabel("*Classificação:"), gbc);
         comboClassificacao = new JComboBox<>(new String[]{"Receita", "Despesa"});
         gbc.gridx = 1;
         panel.add(comboClassificacao, gbc);
 
         y++;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Categoria:"), gbc);
+        panel.add(new JLabel("*Categoria:"), gbc);
         comboCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
         y++;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Descrição:"), gbc);
+        panel.add(new JLabel("*Descrição:"), gbc);
         campoDescricao = new JTextField(15);
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
@@ -91,32 +91,54 @@ public class RegistrarTransacaoView extends JFrame {
         y++;
         btnRegistrar = new JButton("Registrar");
         btnRegistrar.setPreferredSize(new Dimension(120, 30));
-        btnRegistrar.addActionListener(e -> registrarTransacao());
         gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.EAST;
         panel.add(btnRegistrar, gbc);
 
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(120, 30));
-        btnVoltar.addActionListener(e -> {
-            new MainView(usuario).setVisible(true);
-            dispose();
-        });
         gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
         panel.add(btnVoltar, gbc);
 
         add(panel, BorderLayout.CENTER);
+
+        btnRegistrar.addActionListener(e -> registrarTransacao());
+        btnVoltar.addActionListener(e -> {
+            new MainView(usuario).setVisible(true);
+            dispose();
+        });
     }
 
     private void registrarTransacao() {
+        StringBuilder erros = new StringBuilder();
+        String valorStr = campoValor.getText().trim();
+        String dataStr = campoData.getText().trim();
+        String descricao = campoDescricao.getText().trim();
+
+        if (valorStr.isEmpty()) {
+            erros.append("- Valor é obrigatório\n");
+        }
+        if (dataStr.isEmpty() || dataStr.contains("_")) {
+            erros.append("- Data é obrigatória (DD/MM/AAAA)\n");
+        }
+        if (descricao.isEmpty()) {
+            erros.append("- Descrição é obrigatória\n");
+        }
+        if (erros.length() > 0) {
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Por favor, verifique os seguintes campos:\n" + erros.toString(),
+                    "Campos obrigatórios",
+                    JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
         try {
-            float valor = Float.parseFloat(campoValor.getText().replace(',', '.'));
-            String dataStr = campoData.getText();
+            float valor = Float.parseFloat(valorStr.replace(',', '.'));
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate data = LocalDate.parse(dataStr, fmt);
 
             String classificacao = (String) comboClassificacao.getSelectedItem();
             String categoria = (String) comboCategoria.getSelectedItem();
-            String descricao = campoDescricao.getText().trim();
 
             usuario.registrarTransacao(
                     valor,
@@ -128,20 +150,26 @@ public class RegistrarTransacaoView extends JFrame {
                     data.getYear()
             );
 
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Transação registrada com sucesso!",
-                    "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+                    "Sucesso", JOptionPane.INFORMATION_MESSAGE
+            );
             new MainView(usuario).setVisible(true);
             dispose();
 
         } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(this,
+            JOptionPane.showMessageDialog(
+                    this,
                     "Valor inválido. Use apenas números.",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+                    "Erro", JOptionPane.ERROR_MESSAGE
+            );
         } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Data inválida. Verifique o formato dd/MM/yyyy e valores válidos.",
-                    "Erro", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Data inválida. Verifique o formato dd/MM/yyyy.",
+                    "Erro", JOptionPane.ERROR_MESSAGE
+            );
         }
     }
 }
