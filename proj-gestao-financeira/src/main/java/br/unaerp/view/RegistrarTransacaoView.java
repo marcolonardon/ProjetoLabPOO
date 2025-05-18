@@ -2,6 +2,7 @@ package br.unaerp.view;
 
 import br.unaerp.model.Usuario;
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.time.LocalDate;
@@ -26,28 +27,35 @@ public class RegistrarTransacaoView extends JFrame {
     }
 
     private void initComponents() {
-        setSize(450, 350);
+        setSize(650, 380);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setLayout(new BorderLayout());
+
+        JLabel lblTitulo = new JLabel("Registrar Nova Transação", SwingConstants.CENTER);
+        lblTitulo.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        lblTitulo.setBorder(new EmptyBorder(10, 0, 5, 0));
+        add(lblTitulo, BorderLayout.NORTH);
+
+        JSeparator sep = new JSeparator();
+        add(sep, BorderLayout.AFTER_LAST_LINE);
 
         JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(new EmptyBorder(10, 20, 20, 20));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(8, 8, 8, 8);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         int y = 0;
-        // Valor
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Valor (R$):"), gbc);
         campoValor = new JTextField(10);
-        campoValor.setToolTipText("Digite o valor da transação");
         gbc.gridx = 1;
         panel.add(campoValor, gbc);
 
-        // Data
         y++;
         gbc.gridx = 0; gbc.gridy = y;
-        panel.add(new JLabel("Data (dd/mm/yyyy):"), gbc);
+        panel.add(new JLabel("Data (dd/MM/yyyy):"), gbc);
         try {
             MaskFormatter mask = new MaskFormatter("##/##/####");
             mask.setPlaceholderCharacter('_');
@@ -56,11 +64,9 @@ public class RegistrarTransacaoView extends JFrame {
             campoData = new JFormattedTextField();
         }
         campoData.setColumns(8);
-        campoData.setToolTipText("Formato: dd/mm/yyyy");
         gbc.gridx = 1;
         panel.add(campoData, gbc);
 
-        // Classificação
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Classificação:"), gbc);
@@ -68,7 +74,6 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(comboClassificacao, gbc);
 
-        // Categoria
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Categoria:"), gbc);
@@ -76,25 +81,22 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
-        // Descrição
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("Descrição:"), gbc);
         campoDescricao = new JTextField(15);
-        campoDescricao.setToolTipText("Breve descrição da transação");
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 
-        // Botões
         y++;
         btnRegistrar = new JButton("Registrar");
-        btnRegistrar.setPreferredSize(new Dimension(120, 28));
+        btnRegistrar.setPreferredSize(new Dimension(120, 30));
         btnRegistrar.addActionListener(e -> registrarTransacao());
         gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.EAST;
         panel.add(btnRegistrar, gbc);
 
         btnVoltar = new JButton("Voltar");
-        btnVoltar.setPreferredSize(new Dimension(120, 28));
+        btnVoltar.setPreferredSize(new Dimension(120, 30));
         btnVoltar.addActionListener(e -> {
             new MainView(usuario).setVisible(true);
             dispose();
@@ -102,7 +104,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
         panel.add(btnVoltar, gbc);
 
-        add(panel);
+        add(panel, BorderLayout.CENTER);
     }
 
     private void registrarTransacao() {
@@ -138,7 +140,7 @@ public class RegistrarTransacaoView extends JFrame {
                     "Erro", JOptionPane.ERROR_MESSAGE);
         } catch (DateTimeParseException ex) {
             JOptionPane.showMessageDialog(this,
-                    "Data inválida. Verifique o formato dd/mm/yyyy e valores válidos.",
+                    "Data inválida. Verifique o formato dd/MM/yyyy e valores válidos.",
                     "Erro", JOptionPane.ERROR_MESSAGE);
         }
     }

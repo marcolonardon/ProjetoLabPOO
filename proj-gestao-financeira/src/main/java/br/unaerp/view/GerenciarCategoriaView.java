@@ -14,14 +14,14 @@ public class GerenciarCategoriaView extends JFrame {
     private Usuario usuario;
 
     public GerenciarCategoriaView(Usuario usuario) {
-        super("Gerenciar Categorias - Sistema Financeiro");
+        super("Gerenciar Categorias");
         this.usuario = usuario;
         initComponents();
     }
 
     private void initComponents() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 350);
+        setSize(650, 350);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
@@ -37,6 +37,7 @@ public class GerenciarCategoriaView extends JFrame {
         add(tabPane, BorderLayout.CENTER);
 
         btnVoltar = new JButton("Voltar");
+        btnVoltar.setPreferredSize(new Dimension(100, 30));
         btnVoltar.addActionListener(e -> {
             new MainView(usuario).setVisible(true);
             dispose();
@@ -63,7 +64,7 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
         JButton btnAdd = new JButton("Adicionar");
-        btnAdd.setPreferredSize(new Dimension(140, 25));
+        btnAdd.setPreferredSize(new Dimension(140, 30));
         btnAdd.addActionListener(e -> {
             String nome = txtNovaCategoria.getText().trim();
             if (nome.isEmpty()) {
@@ -93,7 +94,7 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1;
         cbEditarCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        cbEditarCategoria.setPreferredSize(new Dimension(200, 25));
+        cbEditarCategoria.setPreferredSize(new Dimension(200, 30));
         panel.add(cbEditarCategoria, gbc);
 
         gbc.gridx = 0; gbc.gridy = 1;
@@ -106,7 +107,7 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
         JButton btnEdit = new JButton("Salvar Alteração");
-        btnEdit.setPreferredSize(new Dimension(140, 25));
+        btnEdit.setPreferredSize(new Dimension(140, 30));
         btnEdit.addActionListener(e -> {
             String atual = (String) cbEditarCategoria.getSelectedItem();
             String novoNome = txtEditarCategoria.getText().trim();
@@ -137,12 +138,18 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1;
         cbExcluirCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        cbExcluirCategoria.setPreferredSize(new Dimension(200, 25));
+        cbExcluirCategoria.setPreferredSize(new Dimension(200, 30));
         panel.add(cbExcluirCategoria, gbc);
 
         gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+        JButton btnDel = getJButton();
+        panel.add(btnDel, gbc);
+        return panel;
+    }
+
+    private JButton getJButton() {
         JButton btnDel = new JButton("Excluir");
-        btnDel.setPreferredSize(new Dimension(140, 25));
+        btnDel.setPreferredSize(new Dimension(140, 30));
         btnDel.addActionListener(e -> {
             String alvo = (String) cbExcluirCategoria.getSelectedItem();
             int resp = JOptionPane.showConfirmDialog(this,
@@ -154,8 +161,7 @@ public class GerenciarCategoriaView extends JFrame {
                 atualizarCombos();
             }
         });
-        panel.add(btnDel, gbc);
-        return panel;
+        return btnDel;
     }
 
     private void atualizarCombos() {

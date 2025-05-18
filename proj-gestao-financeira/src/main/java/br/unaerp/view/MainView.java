@@ -5,8 +5,6 @@ import br.unaerp.model.Usuario;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class MainView extends JFrame {
     private JLabel nomeLabel;
@@ -26,20 +24,17 @@ public class MainView extends JFrame {
         updateInfo();
 
         btnCadastrarTransacao.addActionListener(e -> {
-            RegistrarTransacaoView novaTransacaoView = new RegistrarTransacaoView(usuario);
-            novaTransacaoView.setVisible(true);
+            new RegistrarTransacaoView(usuario).setVisible(true);
             dispose();
         });
 
         btnGerenciarCategorias.addActionListener(e -> {
-            GerenciarCategoriaView categoriaView = new GerenciarCategoriaView(usuario);
-            categoriaView.setVisible(true);
+            new GerenciarCategoriaView(usuario).setVisible(true);
             dispose();
         });
 
         btnVisualizarTransacoes.addActionListener(e -> {
-            VisualizarTransacaoView visualizarTransacaoView = new VisualizarTransacaoView(usuario);
-            visualizarTransacaoView.setVisible(true);
+            new VisualizarTransacaoView(usuario).setVisible(true);
             dispose();
         });
 
@@ -53,7 +48,7 @@ public class MainView extends JFrame {
 
     private void initComponents() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(650, 450);
+        setSize(650, 350);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridBagLayout());
@@ -76,19 +71,23 @@ public class MainView extends JFrame {
 
         gbc.gridx = 2;
         btnLogout = new JButton("Logout");
+        btnLogout.setPreferredSize(new Dimension(80, 30));
         panel.add(btnLogout, gbc);
 
         btnCadastrarTransacao = new JButton("Cadastrar Nova Transação");
+        btnCadastrarTransacao.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 3;
         panel.add(btnCadastrarTransacao, gbc);
 
         btnGerenciarCategorias = new JButton("Gerenciar Categorias");
+        btnGerenciarCategorias.setPreferredSize(new Dimension(200, 30));
         gbc.gridy = 2;
         panel.add(btnGerenciarCategorias, gbc);
 
         btnVisualizarTransacoes = new JButton("Visualizar Transações");
+        btnVisualizarTransacoes.setPreferredSize(new Dimension(200, 30));
         gbc.gridy = 3;
         panel.add(btnVisualizarTransacoes, gbc);
 
