@@ -30,17 +30,16 @@ public class VisualizarTransacaoView extends JFrame {
     private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
     private JTable table;
     private DefaultTableModel tableModel;
-
     private JFormattedTextField txtDataInicio;
     private JFormattedTextField txtDataFim;
     private JCheckBox chkTodas, chkReceita, chkDespesa;
     private JCheckBox chkTodasCats;
     private List<JCheckBox> chkCategorias;
     private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros, btnVoltarTransacoes;
-
     private JLabel lblResumo;
     private JTabbedPane tabPane;
-
+    private static final int COL_EDITAR = 5;
+    private static final int COL_EXCLUIR = 6;
     private List<Transacao> todasTransacoes;
 
     public VisualizarTransacaoView(Usuario usuario) {
@@ -50,24 +49,37 @@ public class VisualizarTransacaoView extends JFrame {
         todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
 
         initComponents();
+
         carregarTabela(todasTransacoes, null, null);
     }
 
     private void initComponents() {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(650, 400);
+        setSize(750, 480);
         setLocationRelativeTo(null);
 
         tabPane = new JTabbedPane();
 
         // Aba Transações
         JPanel panelTransacoes = new JPanel(new BorderLayout(10, 10));
-        String[] cols = {"Data", "Descrição", "Valor", "Classificação", "Categoria"};
+
+        String[] cols = {"Data", "Descrição", "Valor", "Classificação", "Categoria", "Editar", "Excluir"};
         tableModel = new DefaultTableModel(cols, 0) {
-            @Override public boolean isCellEditable(int r, int c) { return false; }
+            @Override public boolean isCellEditable(int row, int col) {
+                return (col == COL_EDITAR || col == COL_EXCLUIR);
+            }
         };
         table = new JTable(tableModel);
         table.getColumnModel().getColumn(1).setCellRenderer(new TextAreaRenderer());
+        table.getColumnModel().getColumn(COL_EDITAR).setPreferredWidth(80);
+        table.getColumnModel().getColumn(COL_EDITAR).setMaxWidth(80);
+        table.getColumnModel().getColumn(COL_EXCLUIR).setPreferredWidth(80);
+        table.getColumnModel().getColumn(COL_EXCLUIR).setMaxWidth(80);
+        table.getColumn("Editar").setCellRenderer(new ButtonRenderer());
+        table.getColumn("Editar").setCellEditor(new ButtonEditor(new JCheckBox()));
+        table.getColumn("Excluir").setCellRenderer(new ButtonRenderer());
+        table.getColumn("Excluir").setCellEditor(new ButtonEditor(new JCheckBox()));
+
         panelTransacoes.add(new JScrollPane(table), BorderLayout.CENTER);
 
         // Resumo
@@ -164,10 +176,11 @@ public class VisualizarTransacaoView extends JFrame {
         );
         chkCategorias.forEach(cb ->
                 cb.addActionListener(e -> {
-                    if (!cb.isSelected())
+                    if (!cb.isSelected()) {
                         chkTodasCats.setSelected(false);
-                    else if (chkCategorias.stream().allMatch(JCheckBox::isSelected))
+                    } else if (chkCategorias.stream().allMatch(JCheckBox::isSelected)) {
                         chkTodasCats.setSelected(true);
+                    }
                 })
         );
 
@@ -176,7 +189,7 @@ public class VisualizarTransacaoView extends JFrame {
         catPanel.add(catScroll, BorderLayout.CENTER);
         filtroPanel.add(catPanel);
 
-        // Botões Filtros
+        // Filtros
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         btnFiltrar       = new JButton("Filtrar");    btnFiltrar.setPreferredSize(new Dimension(100,30));
         btnAtualizar     = new JButton("Atualizar");  btnAtualizar.setPreferredSize(new Dimension(100,30));
@@ -218,12 +231,12 @@ public class VisualizarTransacaoView extends JFrame {
 
         for (Transacao t : transacoes) {
             String dataStr = DATE_FMT.format(t.getData());
-            String desc = t.getDescricao();
-            String valStr = String.format("R$ %.2f", t.getValor());
-            String clas = t.getClassificacao();
-            String cat  = t.getCategoria().getNome();
+            String desc    = t.getDescricao();
+            String valStr  = String.format("R$ %.2f", t.getValor());
+            String clas    = t.getClassificacao();
+            String cat     = t.getCategoria().getNome();
 
-            tableModel.addRow(new Object[]{ dataStr, desc, valStr, clas, cat });
+            tableModel.addRow(new Object[]{ dataStr, desc, valStr, clas, cat, "Editar", "Excluir" });
 
             if ("Receita".equalsIgnoreCase(clas)) somaR += t.getValor();
             else somaD += t.getValor();
@@ -245,7 +258,8 @@ public class VisualizarTransacaoView extends JFrame {
             setOpaque(true);
         }
         @Override
-        public Component getTableCellRendererComponent(JTable tbl, Object val, boolean sel, boolean focus, int row, int col) {
+        public Component getTableCellRendererComponent(
+                JTable tbl, Object val, boolean sel, boolean focus, int row, int col) {
             setText(val != null ? val.toString() : "");
             setSize(tbl.getColumnModel().getColumn(col).getWidth(), getPreferredSize().height);
             setBackground(sel ? tbl.getSelectionBackground() : tbl.getBackground());
@@ -253,6 +267,209 @@ public class VisualizarTransacaoView extends JFrame {
             int h = getPreferredSize().height;
             if (tbl.getRowHeight(row) != h) tbl.setRowHeight(row, h);
             return this;
+        }
+    }
+
+    class ButtonRenderer extends JButton implements TableCellRenderer {
+        public ButtonRenderer() {
+            setOpaque(true);
+        }
+        @Override
+        public Component getTableCellRendererComponent(
+                JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+            setText((value == null) ? "" : value.toString());
+            return this;
+        }
+    }
+
+    class ButtonEditor extends DefaultCellEditor {
+        private JButton  button;
+        private String   label;
+        private boolean  isPushed;
+        private int      rowAtivo;
+        private int      colAtivo;
+
+        public ButtonEditor(JCheckBox checkBox) {
+            super(checkBox);
+            button = new JButton();
+            button.setOpaque(true);
+
+            button.addActionListener(e -> fireEditingStopped());
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(
+                JTable table, Object value, boolean isSelected, int row, int column) {
+            label    = (value == null) ? "" : value.toString();
+            button.setText(label);
+            isPushed = true;
+            rowAtivo = row;
+            colAtivo = column;
+            return button;
+        }
+
+        @Override
+        public Object getCellEditorValue() {
+            if (isPushed) {
+                Transacao t = todasTransacoes.get(rowAtivo);
+
+                if (colAtivo == COL_EXCLUIR) {
+                    int confirm = JOptionPane.showConfirmDialog(
+                            VisualizarTransacaoView.this,
+                            "Deseja realmente excluir esta transação?",
+                            "Confirmação",
+                            JOptionPane.YES_NO_OPTION
+                    );
+                    if (confirm == JOptionPane.YES_OPTION) {
+                        transacaoDAO.deletar(t);
+                        todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+                        carregarTabela(todasTransacoes, null, null);
+                    }
+                }
+                else if (colAtivo == COL_EDITAR) {
+                    editarTransacao(t);
+                }
+            }
+            isPushed = false;
+            return label;
+        }
+
+        @Override
+        public boolean stopCellEditing() {
+            isPushed = false;
+            return super.stopCellEditing();
+        }
+
+        @Override
+        protected void fireEditingStopped() {
+            super.fireEditingStopped();
+        }
+    }
+
+    private void editarTransacao(Transacao t) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.anchor = GridBagConstraints.WEST;
+
+        int y = 0;
+        // Data
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Data (dd/MM/yyyy):"), gbc);
+        JFormattedTextField txtData = null;
+        try {
+            MaskFormatter mask = new MaskFormatter("##/##/####");
+            mask.setPlaceholderCharacter('_');
+            txtData = new JFormattedTextField(mask);
+        } catch (Exception ex) {
+            txtData = new JFormattedTextField();
+        }
+        txtData.setColumns(8);
+        txtData.setText(DATE_FMT.format(t.getData()));
+        gbc.gridx = 1;
+        panel.add(txtData, gbc);
+
+        // Valor
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Valor (R$):"), gbc);
+        JTextField txtValor = new JTextField(String.format("%.2f", t.getValor()), 10);
+        gbc.gridx = 1;
+        panel.add(txtValor, gbc);
+
+        // Classificação
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Classificação:"), gbc);
+        JComboBox<String> cbClass = new JComboBox<>(new String[]{"Receita", "Despesa"});
+        cbClass.setSelectedItem(t.getClassificacao());
+        gbc.gridx = 1;
+        panel.add(cbClass, gbc);
+
+        // Categoria
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Categoria:"), gbc);
+        CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
+        List<Categoria> listaCats = categoriaDAO.buscarPorUsuario(usuario.getLogin());
+        String[] nomesCats = listaCats.stream().map(Categoria::getNome).toArray(String[]::new);
+        JComboBox<String> cbCat = new JComboBox<>(nomesCats);
+        cbCat.setSelectedItem(t.getCategoria().getNome());
+        gbc.gridx = 1;
+        panel.add(cbCat, gbc);
+
+        // Descrição
+        y++;
+        gbc.gridx = 0; gbc.gridy = y;
+        panel.add(new JLabel("Descrição:"), gbc);
+        JTextField txtDesc = new JTextField(t.getDescricao(), 15);
+        gbc.gridx = 1;
+        panel.add(txtDesc, gbc);
+
+        int result = JOptionPane.showConfirmDialog(
+                this,
+                panel,
+                "Editar Transação",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                LocalDate novaData = LocalDate.parse(txtData.getText(), DATE_FMT);
+
+                float novoValor = Float.parseFloat(txtValor.getText().replace(',', '.'));
+
+                String novaClas = (String) cbClass.getSelectedItem();
+
+                String novoNomeCat = (String) cbCat.getSelectedItem();
+                Categoria novaCatEnt = categoriaDAO.buscarPorNomeEUsuario(novoNomeCat, usuario.getLogin());
+                if (novaCatEnt == null) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Categoria selecionada não encontrada.",
+                            "Erro",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                String novaDesc = txtDesc.getText().trim();
+                if (novaDesc.isEmpty()) {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Descrição não pode ficar vazia.",
+                            "Erro",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+
+                t.setData(novaData);
+                t.setValor(novoValor);
+                t.setClassificacao(novaClas);
+                t.setCategoria(novaCatEnt);
+                t.setDescricao(novaDesc);
+                transacaoDAO.atualizar(t);
+
+                todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+                carregarTabela(todasTransacoes, null, null);
+
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Valor inválido. Use apenas números.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            } catch (DateTimeParseException ex) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Data inválida. Use dd/MM/yyyy.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+            }
         }
     }
 
