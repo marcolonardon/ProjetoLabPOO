@@ -1,6 +1,7 @@
 package br.unaerp.view;
 
 import br.unaerp.controller.LoginController;
+import br.unaerp.model.Conta;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -96,7 +97,9 @@ public class MainView extends JFrame {
 
     public void updateInfo() {
         nomeLabel.setText("Olá, " + usuario.getNome() + "!");
-        saldoLabel.setText("Saldo: R$ " + String.format("%.2f", usuario.calcularSaldoTotal()));
+        Conta conta = new Conta(usuario);
+        float saldoAtual = conta.getSaldo();
+        saldoLabel.setText("Saldo: R$ " + String.format("%.2f", saldoAtual));
     }
 
     public JButton getBtnCadastrarTransacao() {

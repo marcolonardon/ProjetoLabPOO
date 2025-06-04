@@ -1,47 +1,49 @@
 package br.unaerp.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "categoria")
 public class Categoria {
-    private List<String> categorias;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
+    private Integer id;
+
+    @Column(name = "nome", nullable = false, length = 100)
+    private String nome;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_login", nullable = false)
+    private Usuario usuario;
 
     public Categoria() {
-        categorias = new ArrayList<>();
-        categorias.add("Salário");
-        categorias.add("Mercado");
-        categorias.add("Saúde");
+
     }
 
-    public List<String> getCategorias() {
-        return categorias;
+    public Categoria(String nome, Usuario usuario) {
+        this.nome = nome;
+        this.usuario = usuario;
     }
 
-    public String adicionarCategoria(String novaCategoria) {
-        if (!categorias.contains(novaCategoria)) {
-            categorias.add(novaCategoria);
-            return "Categoria adicionada com sucesso.";
-        } else {
-            return "Categoria já existe.";
-        }
+    public Integer getId() {
+        return id;
     }
 
-    public String editarCategoria(String categoriaAtual, String novaCategoria) {
-        if (categorias.contains(categoriaAtual)) {
-            int index = categorias.indexOf(categoriaAtual);
-            categorias.set(index, novaCategoria);
-            return "Categoria editada com sucesso.";
-        } else {
-            return "Categoria não encontrada.";
-        }
+    public String getNome() {
+        return nome;
     }
 
-    public String excluirCategoria(String categoria) {
-        if (categorias.contains(categoria)) {
-            categorias.remove(categoria);
-            return "Categoria excluída com sucesso.";
-        } else {
-            return "Categoria não encontrada.";
-        }
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
     }
 }

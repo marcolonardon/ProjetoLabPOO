@@ -1,7 +1,4 @@
 package br.unaerp.model;
-
-import br.unaerp.model.Usuario;
-
 import java.util.HashMap;
 import java.util.Map;
 

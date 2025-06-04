@@ -2,21 +2,23 @@ package br.unaerp.controller;
 
 import br.unaerp.model.Usuario;
 import br.unaerp.model.UsuarioDAO;
+import br.unaerp.model.UsuarioDAOImpl;
 import br.unaerp.view.CadastroUsuarioView;
 import br.unaerp.view.LoginView;
 import br.unaerp.view.MainView;
+
 import javax.swing.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class LoginController {
-    private LoginView loginView;
-    private static Map<String, Usuario> usuarios = new HashMap<>();
+    private final LoginView loginView;
+    private static Map<String, Usuario> usuariosEmMemoria = new HashMap<>();
 
     public LoginController(LoginView loginView) {
         this.loginView = loginView;
-        carregarUsuariosDoArquivo();
+        carregarUsuariosDoBanco();
         initController();
     }
 
@@ -25,28 +27,34 @@ public class LoginController {
         loginView.addNovoUsuarioListener(e -> abrirCadastroUsuario());
     }
 
-    private void carregarUsuariosDoArquivo() {
-        List<Usuario> usuariosCarregados = new UsuarioDAO().carregarUsuarios();
-        for (Usuario u : usuariosCarregados) {
-            usuarios.put(u.getLogin(), u);
+    private void carregarUsuariosDoBanco() {
+        UsuarioDAO dao = new UsuarioDAOImpl();
+        List<Usuario> lista = dao.obterTodos();
+        usuariosEmMemoria.clear();
+        for (Usuario u : lista) {
+            usuariosEmMemoria.put(u.getLogin(), u);
         }
     }
 
     private void login() {
         String usuario = loginView.getUsuario();
         String senha = loginView.getSenha();
-        Usuario u = usuarios.get(usuario);
-        if (u != null && u.getSenha().equals(senha)) {
+
+        Usuario u = usuariosEmMemoria.get(usuario);
+
+        if (u != null && u.verificarSenha(senha)) {
             JOptionPane.showMessageDialog(loginView, "Login realizado com sucesso!");
-            System.out.println(u.getInformacoesUsuario());
             SwingUtilities.invokeLater(() -> {
-                MainView mainView = new MainView(usuarios.get(usuario));
+                MainView mainView = new MainView(u);
                 new MainController(u, mainView);
                 mainView.setVisible(true);
                 loginView.dispose();
             });
         } else {
-            JOptionPane.showMessageDialog(loginView, "Usuário ou senha incorretos.", "Erro de Login", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(loginView,
+                    "Usuário ou senha incorretos.",
+                    "Erro de Login",
+                    JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -59,7 +67,7 @@ public class LoginController {
         });
     }
 
-    public static void adicionarUsuario(Usuario usuario) {
-        usuarios.put(usuario.getLogin(), usuario);
+    public static void adicionarUsuarioNaMemoria(Usuario usuario) {
+        usuariosEmMemoria.put(usuario.getLogin(), usuario);
     }
 }

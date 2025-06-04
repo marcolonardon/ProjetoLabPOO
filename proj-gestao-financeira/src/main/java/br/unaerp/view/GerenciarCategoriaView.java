@@ -1,22 +1,31 @@
 package br.unaerp.view;
 
+import br.unaerp.model.Categoria;
+import br.unaerp.model.CategoriaDAO;
+import br.unaerp.model.CategoriaDAOImpl;
 import br.unaerp.model.Usuario;
+
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class GerenciarCategoriaView extends JFrame {
+
+    private final Usuario usuario;
+    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
 
     private JButton btnVoltar;
     private JTextField txtNovaCategoria;
     private JTextField txtEditarCategoria;
     private JComboBox<String> cbEditarCategoria;
     private JComboBox<String> cbExcluirCategoria;
-    private Usuario usuario;
 
     public GerenciarCategoriaView(Usuario usuario) {
         super("Gerenciar Categorias");
         this.usuario = usuario;
         initComponents();
+        carregarCombos();
     }
 
     private void initComponents() {
@@ -25,17 +34,20 @@ public class GerenciarCategoriaView extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
+        // Título
         JLabel lblTitulo = new JLabel("Gerenciamento de Categorias");
         lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 18f));
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblTitulo, BorderLayout.NORTH);
 
+        // Abas
         JTabbedPane tabPane = new JTabbedPane();
         tabPane.addTab("Adicionar", criarPainelAdicionar());
         tabPane.addTab("Editar", criarPainelEditar());
         tabPane.addTab("Excluir", criarPainelExcluir());
         add(tabPane, BorderLayout.CENTER);
 
+        // Botão Voltar
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(100, 30));
         btnVoltar.addActionListener(e -> {
@@ -54,7 +66,9 @@ public class GerenciarCategoriaView extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        // nova categoria
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(new JLabel("Nome da nova categoria:"), gbc);
 
         gbc.gridx = 1;
@@ -62,23 +76,48 @@ public class GerenciarCategoriaView extends JFrame {
         txtNovaCategoria.setToolTipText("Digite o nome da categoria a ser adicionada");
         panel.add(txtNovaCategoria, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
+        // Botão Adicionar
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.EAST;
         JButton btnAdd = new JButton("Adicionar");
         btnAdd.setPreferredSize(new Dimension(140, 30));
         btnAdd.addActionListener(e -> {
             String nome = txtNovaCategoria.getText().trim();
             if (nome.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
+                JOptionPane.showMessageDialog(
+                        this,
                         "O nome da categoria não pode ser vazio.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
-            String msg = usuario.getCategoria().adicionarCategoria(nome);
-            JOptionPane.showMessageDialog(this, msg);
-            atualizarCombos();
+
+            Categoria existente = categoriaDAO.buscarPorNomeEUsuario(nome, usuario.getLogin());
+            if (existente != null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Categoria já existe para este usuário.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            Categoria nova = new Categoria(nome, usuario);
+            categoriaDAO.salvar(nova);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Categoria adicionada com sucesso.",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
             txtNovaCategoria.setText("");
+            carregarCombos();
         });
         panel.add(btnAdd, gbc);
+
         return panel;
     }
 
@@ -89,15 +128,19 @@ public class GerenciarCategoriaView extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        // Combo categoria
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(new JLabel("Selecione categoria:"), gbc);
 
         gbc.gridx = 1;
-        cbEditarCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        cbEditarCategoria = new JComboBox<>();
         cbEditarCategoria.setPreferredSize(new Dimension(200, 30));
         panel.add(cbEditarCategoria, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        // novo nome
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         panel.add(new JLabel("Novo nome:"), gbc);
 
         gbc.gridx = 1;
@@ -105,24 +148,71 @@ public class GerenciarCategoriaView extends JFrame {
         txtEditarCategoria.setToolTipText("Digite o novo nome para a categoria selecionada");
         panel.add(txtEditarCategoria, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 2; gbc.anchor = GridBagConstraints.EAST;
+        // Salvar Alteração
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        gbc.anchor = GridBagConstraints.EAST;
         JButton btnEdit = new JButton("Salvar Alteração");
         btnEdit.setPreferredSize(new Dimension(140, 30));
         btnEdit.addActionListener(e -> {
             String atual = (String) cbEditarCategoria.getSelectedItem();
             String novoNome = txtEditarCategoria.getText().trim();
-            if (novoNome.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                        "O novo nome não pode ser vazio.",
-                        "Aviso", JOptionPane.WARNING_MESSAGE);
+
+            if (atual == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não há categorias para editar.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
                 return;
             }
-            String msg = usuario.getCategoria().editarCategoria(atual, novoNome);
-            JOptionPane.showMessageDialog(this, msg);
-            atualizarCombos();
+            if (novoNome.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "O novo nome não pode ser vazio.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            Categoria cat = categoriaDAO.buscarPorNomeEUsuario(atual, usuario.getLogin());
+            if (cat == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Categoria não encontrada no banco.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                carregarCombos();
+                return;
+            }
+
+            Categoria jaExiste = categoriaDAO.buscarPorNomeEUsuario(novoNome, usuario.getLogin());
+            if (jaExiste != null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Já existe uma categoria com este novo nome.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            cat.setNome(novoNome);
+            categoriaDAO.atualizar(cat);
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Categoria editada com sucesso.",
+                    "Sucesso",
+                    JOptionPane.INFORMATION_MESSAGE
+            );
             txtEditarCategoria.setText("");
+            carregarCombos();
         });
         panel.add(btnEdit, gbc);
+
         return panel;
     }
 
@@ -133,41 +223,77 @@ public class GerenciarCategoriaView extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        // combo excluir
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         panel.add(new JLabel("Selecione categoria:"), gbc);
 
         gbc.gridx = 1;
-        cbExcluirCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+        cbExcluirCategoria = new JComboBox<>();
         cbExcluirCategoria.setPreferredSize(new Dimension(200, 30));
         panel.add(cbExcluirCategoria, gbc);
 
-        gbc.gridx = 1; gbc.gridy = 1; gbc.anchor = GridBagConstraints.EAST;
-        JButton btnDel = getJButton();
-        panel.add(btnDel, gbc);
-        return panel;
-    }
-
-    private JButton getJButton() {
+        // Botão Excluir
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.EAST;
         JButton btnDel = new JButton("Excluir");
         btnDel.setPreferredSize(new Dimension(140, 30));
         btnDel.addActionListener(e -> {
             String alvo = (String) cbExcluirCategoria.getSelectedItem();
-            int resp = JOptionPane.showConfirmDialog(this,
+            if (alvo == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não há categorias para excluir.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
+            int resp = JOptionPane.showConfirmDialog(
+                    this,
                     "Tem certeza que deseja excluir a categoria '" + alvo + "'?",
-                    "Confirmar Exclusão", JOptionPane.YES_NO_OPTION);
+                    "Confirmar Exclusão",
+                    JOptionPane.YES_NO_OPTION
+            );
             if (resp == JOptionPane.YES_OPTION) {
-                String msg = usuario.getCategoria().excluirCategoria(alvo);
-                JOptionPane.showMessageDialog(this, msg);
-                atualizarCombos();
+                Categoria cat = categoriaDAO.buscarPorNomeEUsuario(alvo, usuario.getLogin());
+                if (cat != null) {
+                    categoriaDAO.deletar(cat);
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Categoria excluída com sucesso.",
+                            "Sucesso",
+                            JOptionPane.INFORMATION_MESSAGE
+                    );
+                } else {
+                    JOptionPane.showMessageDialog(
+                            this,
+                            "Categoria não encontrada no banco.",
+                            "Erro",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                }
+                carregarCombos();
             }
         });
-        return btnDel;
+        panel.add(btnDel, gbc);
+
+        return panel;
     }
 
-    private void atualizarCombos() {
-        DefaultComboBoxModel<String> modelEdit = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
-        DefaultComboBoxModel<String> modelDel = new DefaultComboBoxModel<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+    private void carregarCombos() {
+        List<Categoria> lista = categoriaDAO.buscarPorUsuario(usuario.getLogin());
+        List<String> nomes = lista.stream()
+                .map(Categoria::getNome)
+                .collect(Collectors.toList());
+        String[] arrayNomes = nomes.toArray(new String[0]);
+
+        DefaultComboBoxModel<String> modelEdit = new DefaultComboBoxModel<>(arrayNomes);
         cbEditarCategoria.setModel(modelEdit);
+
+        DefaultComboBoxModel<String> modelDel = new DefaultComboBoxModel<>(arrayNomes);
         cbExcluirCategoria.setModel(modelDel);
     }
 }

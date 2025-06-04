@@ -1,19 +1,40 @@
 package br.unaerp.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 
+@Entity
+@Table(name = "usuario")
 public class Usuario {
-    private final String login;
+
+    @Id
+    @Column(name = "login", length = 50, nullable = false)
+    private String login;
+
+    @Column(name = "senha", nullable = false)
     private String senha;
+
+    @Column(name = "nome", nullable = false)
     private String nome;
+
+    @Column(name = "tipo", nullable = false)
     private String tipo;
+
+    @Column(name = "documento", nullable = false)
     private String documento;
-    private List<Transacao> transacoes;
-    private Categoria categoria;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Categoria> categorias = new ArrayList<>();
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Transacao> transacoes = new ArrayList<>();
+
+    public Usuario() {
+
+    }
 
     public Usuario(String login, String senha, String nome, String tipo, String documento) {
         this.login = login;
@@ -21,44 +42,77 @@ public class Usuario {
         this.nome = nome;
         this.tipo = tipo;
         this.documento = documento;
+        this.categorias = new ArrayList<>();
         this.transacoes = new ArrayList<>();
-        this.categoria = new Categoria();
     }
 
-    public String getLogin() { return login; }
-    public String getSenha() { return senha; }
-    public void setSenha(String senha) { this.senha = senha; }
-    public boolean verificarSenha(String senha) { return this.senha.equals(senha); }
-    public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
-    public String getDocumento() { return documento; }
-    public void setDocumento(String documento) { this.documento = documento; }
-
-    public Categoria getCategoria() { return categoria; }
-    public List<String> getCategorias() { return categoria.getCategorias(); }
-    public List<Transacao> getTransacoes() { return transacoes; }
-    public void setTransacoes(List<Transacao> transacoes) { this.transacoes = transacoes; }
-
-    public void registrarTransacao(float valor,
-                                   String categoriaNome,
-                                   String classificacao,
-                                   String descricao,
-                                   int dia, int mes, int ano) {
-        transacoes.add(new Transacao(valor, categoriaNome, classificacao, descricao, dia, mes, ano));
+    public String getLogin() {
+        return login;
     }
 
-    public float calcularSaldoTotal() {
-        float saldo = 0;
-        for (Transacao t : transacoes) {
-            if (t.getClassificacao().equalsIgnoreCase("Receita")) {
-                saldo += t.getValor();
-            } else if (t.getClassificacao().equalsIgnoreCase("Despesa")) {
-                saldo -= t.getValor();
-            }
-        }
-        return saldo;
+    public String getSenha() {
+        return senha;
+    }
+
+    public void setSenha(String senha) {
+        this.senha = senha;
+    }
+
+    public boolean verificarSenha(String senha) {
+        return this.senha.equals(senha);
+    }
+
+    public String getNome() {
+        return nome;
+    }
+
+    public void setNome(String nome) {
+        this.nome = nome;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    public String getDocumento() {
+        return documento;
+    }
+
+    public void setDocumento(String documento) {
+        this.documento = documento;
+    }
+
+
+    public List<Categoria> getCategorias() {
+        return categorias;
+    }
+
+    public void adicionarCategoria(Categoria categoria) {
+        categorias.add(categoria);
+        categoria.setUsuario(this);
+    }
+
+    public void removerCategoria(Categoria categoria) {
+        categorias.remove(categoria);
+        categoria.setUsuario(null);
+    }
+
+    public List<Transacao> getTransacoes() {
+        return transacoes;
+    }
+
+    public void adicionarTransacao(Transacao transacao) {
+        transacoes.add(transacao);
+        transacao.setUsuario(this);
+    }
+
+    public void removerTransacao(Transacao transacao) {
+        transacoes.remove(transacao);
+        transacao.setUsuario(null);
     }
 
     public String getInformacoesUsuario() {
@@ -71,10 +125,22 @@ public class Usuario {
             sb.append("CNPJ: ").append(documento).append("\n");
 
         sb.append("\nTransações:\n");
-        FormatarData(transacoes, sb);
+        formatarData(transacoes, sb);
 
         sb.append("\nSaldo Total: R$ ").append(String.format("%.2f", calcularSaldoTotal())).append("\n");
         return sb.toString();
+    }
+
+    public float calcularSaldoTotal() {
+        float saldo = 0;
+        for (Transacao t : transacoes) {
+            if (t.getClassificacao().equalsIgnoreCase("Receita")) {
+                saldo += t.getValor();
+            } else if (t.getClassificacao().equalsIgnoreCase("Despesa")) {
+                saldo -= t.getValor();
+            }
+        }
+        return saldo;
     }
 
     public String filtrarTransacoes(int filtro,
@@ -103,7 +169,7 @@ public class Usuario {
                     }
                     break;
                 case 2:
-                    if (inRange && t.getCategoria().equalsIgnoreCase(filtroExtra)) {
+                    if (inRange && t.getCategoria().getNome().equalsIgnoreCase(filtroExtra)) {
                         resultado.add(t);
                     }
                     break;
@@ -129,7 +195,7 @@ public class Usuario {
             sb.append("Nenhuma transação encontrada com esse filtro.\n");
         } else {
             sb.append("Transações filtradas:\n");
-            FormatarData(resultado, sb);
+            formatarData(resultado, sb);
             sb.append("\nResumo do filtro:\n");
             sb.append("Total de Receitas (Filtro): R$ ").append(String.format("%.2f", totalReceitasFiltro)).append("\n");
             sb.append("Total de Despesas (Filtro): R$ ").append(String.format("%.2f", totalDespesasFiltro)).append("\n");
@@ -143,16 +209,17 @@ public class Usuario {
         return sb.toString();
     }
 
-    private void FormatarData(List<Transacao> resultado, StringBuilder sb) {
+    private void formatarData(List<Transacao> lista, StringBuilder sb) {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        for (Transacao t : resultado) {
-            sb.append(fmt.format(LocalDate.of(t.getAno(), t.getMes(), t.getDia())))
+        for (Transacao t : lista) {
+            LocalDate dt = t.getData();
+            sb.append(fmt.format(dt))
                     .append(" | ")
                     .append(t.getClassificacao())
                     .append(": R$ ")
                     .append(String.format("%.2f", t.getValor()))
                     .append(" (Categoria: ")
-                    .append(t.getCategoria())
+                    .append(t.getCategoria().getNome())
                     .append(")\n");
         }
     }
@@ -160,9 +227,12 @@ public class Usuario {
     private boolean isDataNoIntervalo(Transacao t,
                                       int diaInicio, int mesInicio, int anoInicio,
                                       int diaFim, int mesFim, int anoFim) {
-        int dataTransacao = t.getAno() * 10000 + t.getMes() * 100 + t.getDia();
-        int dataInicio = anoInicio * 10000 + mesInicio * 100 + diaInicio;
-        int dataFim = anoFim * 10000 + mesFim * 100 + diaFim;
-        return dataTransacao >= dataInicio && dataTransacao <= dataFim;
+        LocalDate dataTransacao = t.getData();
+        int valorTransacao = dataTransacao.getYear() * 10000
+                + dataTransacao.getMonthValue() * 100
+                + dataTransacao.getDayOfMonth();
+        int valorInicio = anoInicio * 10000 + mesInicio * 100 + diaInicio;
+        int valorFim    = anoFim * 10000    + mesFim * 100    + diaFim;
+        return valorTransacao >= valorInicio && valorTransacao <= valorFim;
     }
 }

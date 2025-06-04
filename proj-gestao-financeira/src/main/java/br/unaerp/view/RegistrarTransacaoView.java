@@ -1,5 +1,11 @@
 package br.unaerp.view;
 
+import br.unaerp.model.Categoria;
+import br.unaerp.model.CategoriaDAO;
+import br.unaerp.model.CategoriaDAOImpl;
+import br.unaerp.model.Transacao;
+import br.unaerp.model.TransacaoDAO;
+import br.unaerp.model.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -9,6 +15,7 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 
 public class RegistrarTransacaoView extends JFrame {
     private JTextField campoValor;
@@ -19,7 +26,9 @@ public class RegistrarTransacaoView extends JFrame {
     private JButton btnRegistrar;
     private JButton btnVoltar;
 
-    private Usuario usuario;
+    private final Usuario usuario;
+    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
+    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
 
     public RegistrarTransacaoView(Usuario usuario) {
         super("Registrar Nova Transação");
@@ -47,12 +56,14 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         int y = 0;
+        // Valor
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("*Valor (R$):"), gbc);
         campoValor = new JTextField(10);
         gbc.gridx = 1;
         panel.add(campoValor, gbc);
 
+        // Data
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("*Data (dd/MM/yyyy):"), gbc);
@@ -67,6 +78,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(campoData, gbc);
 
+        // Classificação
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("*Classificação:"), gbc);
@@ -74,13 +86,21 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(comboClassificacao, gbc);
 
+        // Categoria
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("*Categoria:"), gbc);
-        comboCategoria = new JComboBox<>(usuario.getCategoria().getCategorias().toArray(new String[0]));
+
+        // Carrega categorias
+        List<Categoria> listaCategorias = categoriaDAO.buscarPorUsuario(usuario.getLogin());
+        String[] nomesCategorias = listaCategorias.stream()
+                .map(Categoria::getNome)
+                .toArray(String[]::new);
+        comboCategoria = new JComboBox<>(nomesCategorias);
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
+        // Descrição
         y++;
         gbc.gridx = 0; gbc.gridy = y;
         panel.add(new JLabel("*Descrição:"), gbc);
@@ -88,6 +108,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 
+        // Botões
         y++;
         btnRegistrar = new JButton("Registrar");
         btnRegistrar.setPreferredSize(new Dimension(120, 30));
@@ -101,6 +122,7 @@ public class RegistrarTransacaoView extends JFrame {
 
         add(panel, BorderLayout.CENTER);
 
+        // Listeners
         btnRegistrar.addActionListener(e -> registrarTransacao());
         btnVoltar.addActionListener(e -> {
             new MainView(usuario).setVisible(true);
@@ -132,23 +154,35 @@ public class RegistrarTransacaoView extends JFrame {
             );
             return;
         }
+
         try {
             float valor = Float.parseFloat(valorStr.replace(',', '.'));
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
             LocalDate data = LocalDate.parse(dataStr, fmt);
 
             String classificacao = (String) comboClassificacao.getSelectedItem();
-            String categoria = (String) comboCategoria.getSelectedItem();
+            String nomeCategoria = (String) comboCategoria.getSelectedItem();
 
-            usuario.registrarTransacao(
+            Categoria categoriaEntidade = categoriaDAO.buscarPorNomeEUsuario(nomeCategoria, usuario.getLogin());
+            if (categoriaEntidade == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Categoria selecionada não encontrada no banco.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                return;
+            }
+
+            Transacao t = new Transacao(
                     valor,
-                    categoria,
                     classificacao,
                     descricao,
-                    data.getDayOfMonth(),
-                    data.getMonthValue(),
-                    data.getYear()
+                    data,
+                    usuario,
+                    categoriaEntidade
             );
+            transacaoDAO.salvar(t);
 
             JOptionPane.showMessageDialog(
                     this,

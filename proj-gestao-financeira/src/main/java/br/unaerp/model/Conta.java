@@ -1,91 +1,29 @@
 package br.unaerp.model;
 
-import java.util.ArrayList;
+import java.time.LocalDate;
 import java.util.List;
 
 public class Conta {
-    private int id;
-    private String login;
-    private String senha;
-    private String tipo;
-    private String nome;
-    private String documento;
-    private float saldo;
-    private List<Transacao> transacoes;
 
-    public Conta(String login, String senha, String tipo, String nome, String documento) {
-        this.tipo = tipo;
-        this.nome = nome;
-        this.documento = documento;
-        this.login = login;
-        this.senha = senha;
-        this.id = Math.abs(login.hashCode());
-        this.saldo = 0;
-        this.transacoes = new ArrayList<>();
-    }
+    private final Usuario usuario;
+    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
+    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
 
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public String getTipo() {
-        return tipo;
-    }
-
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
-    }
-
-    public String getDocumento() {
-        return documento;
-    }
-
-    public void setDocumento(String documento) {
-        this.documento = documento;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public String getSenha() {
-        return senha;
+    public Conta(Usuario usuario) {
+        this.usuario = usuario;
     }
 
     public float getSaldo() {
+        List<Transacao> todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+        float saldo = 0f;
+        for (Transacao t : todasTransacoes) {
+            if ("Receita".equalsIgnoreCase(t.getClassificacao())) {
+                saldo += t.getValor();
+            } else if ("Despesa".equalsIgnoreCase(t.getClassificacao())) {
+                saldo -= t.getValor();
+            }
+        }
         return saldo;
     }
-
-    public void depositar(float valor, int dia, int mes, int ano) {
-        if (valor <= 0) {
-            throw new IllegalArgumentException("O valor do depósito deve ser positivo.");
-        }
-        saldo += valor;
-        registrarTransacao(valor, "Receita", "Depósito", "Depósito na conta", dia, mes, ano);
-    }
-
-    public void sacar(float valor, int dia, int mes, int ano) {
-        if (valor <= 0) {
-            throw new IllegalArgumentException("O valor do saque deve ser positivo.");
-        }
-        if (saldo < valor) {
-            throw new IllegalStateException("Saldo insuficiente.");
-        }
-        saldo -= valor;
-        registrarTransacao(valor, "Despesa", "Saque", "Saque da conta", dia, mes, ano);
-    }
-
-    public void registrarTransacao(float valor, String categoria, String classificacao, String descricao, int dia, int mes, int ano) {
-        transacoes.add(new Transacao(valor, categoria, classificacao, descricao, dia, mes, ano));
-    }
-
 
 }
