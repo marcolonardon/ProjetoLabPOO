@@ -79,19 +79,29 @@ public class MainView extends JFrame {
         saldoLabel.setText("Saldo: R$ " + String.format("%.2f", saldoAtual));
     }
 
-    public void addCadastrarTransacaoListener(ActionListener l) {
-        btnCadastrarTransacao.addActionListener(l);
+    public void addCadastrarTransacaoListener(ActionListener actionListener) {
+        btnCadastrarTransacao.addActionListener(actionListener);
     }
 
-    public void addGerenciarCategoriasListener(ActionListener l) {
-        btnGerenciarCategorias.addActionListener(l);
+    public void addGerenciarCategoriasListener(ActionListener actionListener) {
+        btnGerenciarCategorias.addActionListener(actionListener);
     }
 
-    public void addVisualizarTransacoesListener(ActionListener l) {
-        btnVisualizarTransacoes.addActionListener(l);
+    public void addVisualizarTransacoesListener(ActionListener actionListener) {
+        btnVisualizarTransacoes.addActionListener(actionListener);
     }
 
-    public void addLogoutListener(ActionListener l) {
-        btnLogout.addActionListener(l);
+    public void addLogoutListener(ActionListener actionListener) {
+        btnLogout.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    MainView.this,
+                    "Realmente deseja  fazer logout?",
+                    "Confirmação de Logout",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                actionListener.actionPerformed(e);
+            }
+        });
     }
 }
