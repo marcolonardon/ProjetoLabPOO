@@ -77,6 +77,7 @@ public class VisualizarTransacaoView extends JFrame {
             }
         };
         table = new JTable(tableModel);
+        table.getTableHeader().setReorderingAllowed(false);
 
         table.getColumnModel().getColumn(1).setCellRenderer(new TextAreaRenderer());
         table.getColumnModel().getColumn(COL_EDITAR).setPreferredWidth(80);
