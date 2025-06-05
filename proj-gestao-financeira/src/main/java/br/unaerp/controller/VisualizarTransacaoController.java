@@ -56,13 +56,13 @@ public class VisualizarTransacaoController {
                 int col = view.getTable().columnAtPoint(e.getPoint());
                 if (row < 0 || col < 0) return;
 
-                Transacao t = view.getTransacaoPorLinha(row);
-                if (t == null) return;
+                Transacao transacao = view.getTransacaoPorLinha(row);
+                if (transacao == null) return;
 
                 if (col == COL_EDITAR) {
-                    abrirTelaEdicao(t);
+                    abrirTelaEdicao(transacao);
                 } else if (col == COL_EXCLUIR) {
-                    excluirTransacaoConfirmacao(t);
+                    excluirTransacaoConfirmacao(transacao);
                 }
             }
         });
@@ -73,10 +73,23 @@ public class VisualizarTransacaoController {
         });
 
         view.addLimparListener(e -> {
+            view.getChkTodasDatas().setSelected(true);
+            view.getTxtDataInicio().setValue(null);
+            view.getTxtDataFim().setValue(null);
+            view.getTxtDataInicio().setEnabled(false);
+            view.getTxtDataFim().setEnabled(false);
+            view.getChkReceita().setSelected(true);
+            view.getChkDespesa().setSelected(true);
+            view.getChkTodasCategorias().setSelected(true);
+            for (JCheckBox cb : view.getChkCategorias()) {
+                cb.setSelected(true);
+            }
+
             todasTransacoes = transacaoDAO.buscarPorUsuario(usuarioLogado.getLogin());
             view.setListaTransacoes(todasTransacoes);
             view.selecionarAbaTransacoes();
         });
+
 
         view.addVoltarFiltrosListener(e -> voltarParaMain());
 

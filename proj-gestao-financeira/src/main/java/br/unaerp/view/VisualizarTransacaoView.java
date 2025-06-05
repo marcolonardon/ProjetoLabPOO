@@ -584,4 +584,33 @@ public class VisualizarTransacaoView extends JFrame {
             }
         }
     }
+
+    public JCheckBox getChkTodasDatas() {
+        return chkTodasDatas;
+    }
+
+    public JFormattedTextField getTxtDataInicio() {
+        return txtDataInicio;
+    }
+
+    public JFormattedTextField getTxtDataFim() {
+        return txtDataFim;
+    }
+
+    public JCheckBox getChkReceita() {
+        return chkReceita;
+    }
+
+    public JCheckBox getChkDespesa() {
+        return chkDespesa;
+    }
+
+    public JCheckBox getChkTodasCategorias() {
+        return chkTodasCategorias;
+    }
+
+    public List<JCheckBox> getChkCategorias() {
+        return chkCategorias;
+    }
+
 }
