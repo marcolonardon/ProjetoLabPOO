@@ -10,17 +10,23 @@ import br.unaerp.model.DAO.TransacaoDAO;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class VisualizarTransacaoView extends JFrame {
@@ -38,8 +44,8 @@ public class VisualizarTransacaoView extends JFrame {
     private JCheckBox chkTodasDatas;
     private JCheckBox chkReceita, chkDespesa;
     private JCheckBox chkTodasCategorias;
-    private List<JCheckBox> chkCategorias; // será preenchido pelo Controller
-    private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros;
+    private List<JCheckBox> chkCategorias;
+    private JButton btnFiltrar, btnLimpar, btnVoltarFiltros;
 
     private JTabbedPane tabPane;
 
@@ -72,13 +78,16 @@ public class VisualizarTransacaoView extends JFrame {
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                // Só as colunas “Editar” e “Excluir” são clicáveis
                 return (col == COL_EDITAR || col == COL_EXCLUIR);
             }
         };
         table = new JTable(tableModel);
+        table.getTableHeader().setReorderingAllowed(false);
 
-        table.getColumnModel().getColumn(1).setCellRenderer(new TextAreaRenderer());
+        DefaultTableCellRenderer truncRenderer = new DefaultTableCellRenderer();
+        truncRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        table.getColumnModel().getColumn(1).setCellRenderer(truncRenderer);
+
         table.getColumnModel().getColumn(COL_EDITAR).setPreferredWidth(80);
         table.getColumnModel().getColumn(COL_EDITAR).setMaxWidth(80);
         table.getColumnModel().getColumn(COL_EXCLUIR).setPreferredWidth(80);
@@ -89,6 +98,31 @@ public class VisualizarTransacaoView extends JFrame {
 
         table.getColumn("Excluir").setCellRenderer(new ButtonRenderer());
         table.getColumn("Excluir").setCellEditor(new ButtonEditor(new JCheckBox()));
+
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (row >= 0 && col >= 0 && col != COL_EDITAR && col != COL_EXCLUIR) {
+                    Object value = table.getValueAt(row, col);
+                    if (value != null) {
+                        JTextArea textArea = new JTextArea(value.toString());
+                        textArea.setLineWrap(true);
+                        textArea.setWrapStyleWord(true);
+                        textArea.setEditable(false);
+                        JScrollPane scroll = new JScrollPane(textArea);
+                        scroll.setPreferredSize(new Dimension(400, 200));
+                        JOptionPane.showMessageDialog(
+                                VisualizarTransacaoView.this,
+                                scroll,
+                                "Conteúdo Completo",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
+                }
+            }
+        });
 
         panelTransacoes.add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -176,13 +210,13 @@ public class VisualizarTransacaoView extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         btnFiltrar = new JButton("Filtrar");
         btnFiltrar.setPreferredSize(new Dimension(100, 30));
-        btnAtualizar = new JButton("Atualizar");
-        btnAtualizar.setPreferredSize(new Dimension(100, 30));
+        btnLimpar = new JButton("Limpar");
+        btnLimpar.setPreferredSize(new Dimension(100, 30));
         btnVoltarFiltros = new JButton("Voltar");
         btnVoltarFiltros.setPreferredSize(new Dimension(100, 30));
 
         btnPanel.add(btnFiltrar);
-        btnPanel.add(btnAtualizar);
+        btnPanel.add(btnLimpar);
         btnPanel.add(btnVoltarFiltros);
         filtroPanel.add(btnPanel);
 
@@ -247,13 +281,13 @@ public class VisualizarTransacaoView extends JFrame {
         panelCategoriasBox.add(chkTodasCategorias);
         chkCategorias.clear();
 
-        for (Categoria c : listaCategorias) {
-            JCheckBox cb = new JCheckBox(c.getNome(), true);
-            chkCategorias.add(cb);
-            panelCategoriasBox.add(cb);
+        for (Categoria categoria : listaCategorias) {
+            JCheckBox checkBox = new JCheckBox(categoria.getNome(), true);
+            chkCategorias.add(checkBox);
+            panelCategoriasBox.add(checkBox);
 
-            cb.addActionListener(e -> {
-                if (!cb.isSelected()) {
+            checkBox.addActionListener(e -> {
+                if (!checkBox.isSelected()) {
                     chkTodasCategorias.setSelected(false);
                 } else {
                     boolean todasSel = chkCategorias.stream().allMatch(JCheckBox::isSelected);
@@ -264,15 +298,11 @@ public class VisualizarTransacaoView extends JFrame {
 
         chkTodasCategorias.addActionListener(e -> {
             boolean seleciona = chkTodasCategorias.isSelected();
-            chkCategorias.forEach(cb -> cb.setSelected(seleciona));
+            chkCategorias.forEach(checkBox -> checkBox.setSelected(seleciona));
         });
 
         panelCategoriasBox.revalidate();
         panelCategoriasBox.repaint();
-    }
-
-    public List<Transacao> getListaTransacoesAtuais() {
-        return Collections.unmodifiableList(listaTransacoesAtuais);
     }
 
     public Transacao getTransacaoPorLinha(int linha) {
@@ -283,7 +313,6 @@ public class VisualizarTransacaoView extends JFrame {
     public JTable getTable() {
         return table;
     }
-
 
     public boolean isTodasDatasSelecionado() {
         return chkTodasDatas.isSelected();
@@ -316,47 +345,37 @@ public class VisualizarTransacaoView extends JFrame {
                 .collect(Collectors.toList());
     }
 
-    public void addFiltrarListener(ActionListener l) {
-        btnFiltrar.addActionListener(l);
+    public void addFiltrarListener(ActionListener actionListener) {
+        btnFiltrar.addActionListener(actionListener);
     }
 
-    public void addAtualizarListener(ActionListener l) {
-        btnAtualizar.addActionListener(l);
+    public void addLimparListener(ActionListener actionListener) {
+        btnLimpar.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    VisualizarTransacaoView.this,
+                    "Realmente deseja limpar os filtros?",
+                    "Confirmação",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                actionListener.actionPerformed(e);
+            }
+        });
     }
 
-    public void addVoltarFiltrosListener(ActionListener l) {
-        btnVoltarFiltros.addActionListener(l);
+    public void addVoltarFiltrosListener(ActionListener actionListener) {
+        btnVoltarFiltros.addActionListener(actionListener);
     }
 
-    public void addVoltarTransacoesListener(ActionListener l) {
-        btnVoltarTransacoes.addActionListener(l);
+    public void addVoltarTransacoesListener(ActionListener actionListener) {
+        btnVoltarTransacoes.addActionListener(actionListener);
     }
 
     public void selecionarAbaTransacoes() {
         tabPane.setSelectedIndex(0);
     }
 
-    static class TextAreaRenderer extends JTextArea implements TableCellRenderer {
-        public TextAreaRenderer() {
-            setLineWrap(true);
-            setWrapStyleWord(true);
-            setOpaque(true);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object val, boolean sel, boolean focus, int row, int col) {
-            setText(val != null ? val.toString() : "");
-            setSize(table.getColumnModel().getColumn(col).getWidth(), getPreferredSize().height);
-            setBackground(sel ? table.getSelectionBackground() : table.getBackground());
-            setForeground(sel ? table.getSelectionForeground() : table.getForeground());
-            int h = getPreferredSize().height;
-            if (table.getRowHeight(row) != h) table.setRowHeight(row, h);
-            return this;
-        }
-    }
-
-    class ButtonRenderer extends JButton implements TableCellRenderer {
+    static class ButtonRenderer extends JButton implements TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
         }
@@ -437,7 +456,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         int y = 0;
 
-        // Data
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Data (dd/MM/yyyy):"), gbc);
@@ -454,16 +472,23 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(txtData, gbc);
 
-        // Valor
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Valor (R$):"), gbc);
-        JTextField txtValor = new JTextField(String.format("%.2f", transacao.getValor()), 10);
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        NumberFormatter vf = new NumberFormatter(nf);
+        vf.setValueClass(Double.class);
+        vf.setAllowsInvalid(false);
+        vf.setOverwriteMode(true);
+        JFormattedTextField txtValor = new JFormattedTextField(vf);
+        txtValor.setColumns(10);
+        txtValor.setValue(transacao.getValor());
         gbc.gridx = 1;
         panel.add(txtValor, gbc);
 
-        // Classificação
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -473,7 +498,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(cbClass, gbc);
 
-        // Categoria
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -485,7 +509,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(cbCat, gbc);
 
-        // Descrição
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -505,7 +528,9 @@ public class VisualizarTransacaoView extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 LocalDate novaData = LocalDate.parse(txtData.getText(), DATE_FMT);
-                float novoValor = Float.parseFloat(txtValor.getText().replace(',', '.'));
+                Object val = txtValor.getValue();
+                if (val == null) throw new NumberFormatException();
+                double novoValor = ((Number) val).doubleValue();
                 String novaClas = (String) cbClass.getSelectedItem();
                 String novoNomeCat = (String) cbCat.getSelectedItem();
                 Categoria novaCatEnt = categoriaDAO.buscarPorNomeEUsuario(novoNomeCat, usuario.getLogin());
@@ -530,7 +555,7 @@ public class VisualizarTransacaoView extends JFrame {
                 }
 
                 transacao.setData(novaData);
-                transacao.setValor(novoValor);
+                transacao.setValor((float) novoValor);
                 transacao.setClassificacao(novaClas);
                 transacao.setCategoria(novaCatEnt);
                 transacao.setDescricao(novaDesc);
