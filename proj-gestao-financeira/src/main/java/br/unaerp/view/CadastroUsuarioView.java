@@ -31,7 +31,7 @@ public class CadastroUsuarioView extends JFrame {
         add(lblTitulo, BorderLayout.NORTH);
 
         JPanel formPanel = new JPanel(new GridBagLayout());
-        formPanel.setBorder(new EmptyBorder(0, 10, 10, 10)); // topo reduzido
+        formPanel.setBorder(new EmptyBorder(0, 10, 10, 10));
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(0, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;

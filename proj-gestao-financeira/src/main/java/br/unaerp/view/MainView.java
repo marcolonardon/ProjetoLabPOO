@@ -1,11 +1,11 @@
 package br.unaerp.view;
 
-import br.unaerp.controller.LoginController;
 import br.unaerp.model.Conta;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionListener;
 
 public class MainView extends JFrame {
     private JLabel nomeLabel;
@@ -23,28 +23,6 @@ public class MainView extends JFrame {
         this.usuario = usuario;
         initComponents();
         updateInfo();
-
-        btnCadastrarTransacao.addActionListener(e -> {
-            new RegistrarTransacaoView(usuario).setVisible(true);
-            dispose();
-        });
-
-        btnGerenciarCategorias.addActionListener(e -> {
-            new GerenciarCategoriaView(usuario).setVisible(true);
-            dispose();
-        });
-
-        btnVisualizarTransacoes.addActionListener(e -> {
-            new VisualizarTransacaoView(usuario).setVisible(true);
-            dispose();
-        });
-
-        btnLogout.addActionListener(e -> {
-            LoginView loginView = new LoginView();
-            new LoginController(loginView);
-            loginView.setVisible(true);
-            dispose();
-        });
     }
 
     private void initComponents() {
@@ -64,7 +42,6 @@ public class MainView extends JFrame {
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.gridwidth = 1;
         panel.add(nomeLabel, gbc);
 
         gbc.gridx = 1;
@@ -102,4 +79,19 @@ public class MainView extends JFrame {
         saldoLabel.setText("Saldo: R$ " + String.format("%.2f", saldoAtual));
     }
 
+    public void addCadastrarTransacaoListener(ActionListener l) {
+        btnCadastrarTransacao.addActionListener(l);
+    }
+
+    public void addGerenciarCategoriasListener(ActionListener l) {
+        btnGerenciarCategorias.addActionListener(l);
+    }
+
+    public void addVisualizarTransacoesListener(ActionListener l) {
+        btnVisualizarTransacoes.addActionListener(l);
+    }
+
+    public void addLogoutListener(ActionListener l) {
+        btnLogout.addActionListener(l);
+    }
 }

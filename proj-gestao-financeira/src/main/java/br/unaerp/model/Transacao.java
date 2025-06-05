@@ -17,7 +17,7 @@ public class Transacao {
     private float valor;
 
     @Column(name = "classificacao", nullable = false, length = 20)
-    private String classificacao; // "Receita" ou "Despesa"
+    private String classificacao;
 
     @Column(name = "descricao", nullable = false, length = 200)
     private String descricao;
@@ -34,7 +34,6 @@ public class Transacao {
     private Categoria categoria;
 
     public Transacao() {
-        // Construtor para JPA
     }
 
     public Transacao(float valor,

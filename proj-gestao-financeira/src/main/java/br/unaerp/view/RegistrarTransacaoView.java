@@ -1,11 +1,6 @@
 package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
-import br.unaerp.model.DAO.CategoriaDAO;
-import br.unaerp.model.DAO.CategoriaDAOImpl;
-import br.unaerp.model.Transacao;
-import br.unaerp.model.DAO.TransacaoDAO;
-import br.unaerp.model.DAO.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -14,21 +9,20 @@ import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class RegistrarTransacaoView extends JFrame {
+    private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private final Usuario usuario;
+
     private JTextField campoValor;
     private JComboBox<String> comboClassificacao;
-    private JComboBox<String> comboCategoria;
+    private JComboBox<Categoria> comboCategoria;  // Agora JComboBox<Categoria>
     private JTextField campoDescricao;
     private JFormattedTextField campoData;
     private JButton btnRegistrar;
     private JButton btnVoltar;
-
-    private final Usuario usuario;
-    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
-    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
 
     public RegistrarTransacaoView(Usuario usuario) {
         super("Registrar Nova Transação");
@@ -56,6 +50,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         int y = 0;
+
         // Valor
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -95,12 +90,8 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridy = y;
         panel.add(new JLabel("*Categoria:"), gbc);
 
-        // Carrega categorias
-        List<Categoria> listaCategorias = categoriaDAO.buscarPorUsuario(usuario.getLogin());
-        String[] nomesCategorias = listaCategorias.stream()
-                .map(Categoria::getNome)
-                .toArray(String[]::new);
-        comboCategoria = new JComboBox<>(nomesCategorias);
+        comboCategoria = new JComboBox<>();
+        comboCategoria.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
         panel.add(comboCategoria, gbc);
 
@@ -113,7 +104,6 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 
-        // Botões
         y++;
         btnRegistrar = new JButton("Registrar");
         btnRegistrar.setPreferredSize(new Dimension(120, 30));
@@ -129,89 +119,86 @@ public class RegistrarTransacaoView extends JFrame {
         panel.add(btnVoltar, gbc);
 
         add(panel, BorderLayout.CENTER);
+    }
 
-        // Listeners
-        btnRegistrar.addActionListener(e -> registrarTransacao());
-        btnVoltar.addActionListener(e -> {
-            new MainView(usuario).setVisible(true);
-            dispose();
+    public void setListaCategorias(List<Categoria> listaCategorias) {
+        DefaultComboBoxModel<Categoria> model = new DefaultComboBoxModel<>();
+        for (Categoria c : listaCategorias) {
+            model.addElement(c);
+        }
+        comboCategoria.setModel(model);
+
+        comboCategoria.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                          boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof Categoria) {
+                    setText(((Categoria) value).getNome());
+                }
+                return this;
+            }
         });
     }
 
-    private void registrarTransacao() {
-        StringBuilder erros = new StringBuilder();
-        String valorStr = campoValor.getText().trim();
-        String dataStr = campoData.getText().trim();
-        String descricao = campoDescricao.getText().trim();
-
-        if (valorStr.isEmpty()) {
-            erros.append("- Valor é obrigatório\n");
-        }
-        if (dataStr.isEmpty() || dataStr.contains("_")) {
-            erros.append("- Data é obrigatória (DD/MM/AAAA)\n");
-        }
-        if (descricao.isEmpty()) {
-            erros.append("- Descrição é obrigatória\n");
-        }
-        if (erros.length() > 0) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Por favor, verifique os seguintes campos:\n" + erros.toString(),
-                    "Campos obrigatórios",
-                    JOptionPane.WARNING_MESSAGE
-            );
-            return;
-        }
-
-        try {
-            float valor = Float.parseFloat(valorStr.replace(',', '.'));
-            DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-            LocalDate data = LocalDate.parse(dataStr, fmt);
-
-            String classificacao = (String) comboClassificacao.getSelectedItem();
-            String nomeCategoria = (String) comboCategoria.getSelectedItem();
-
-            Categoria categoriaEntidade = categoriaDAO.buscarPorNomeEUsuario(nomeCategoria, usuario.getLogin());
-            if (categoriaEntidade == null) {
-                JOptionPane.showMessageDialog(
-                        this,
-                        "Categoria selecionada não encontrada no banco.",
-                        "Erro",
-                        JOptionPane.ERROR_MESSAGE
-                );
-                return;
-            }
-
-            Transacao t = new Transacao(
-                    valor,
-                    classificacao,
-                    descricao,
-                    data,
-                    usuario,
-                    categoriaEntidade
-            );
-            transacaoDAO.salvar(t);
-
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Transação registrada com sucesso!",
-                    "Sucesso", JOptionPane.INFORMATION_MESSAGE
-            );
-            new MainView(usuario).setVisible(true);
-            dispose();
-
-        } catch (NumberFormatException ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Valor inválido. Use apenas números.",
-                    "Erro", JOptionPane.ERROR_MESSAGE
-            );
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Data inválida. Verifique o formato dd/MM/yyyy.",
-                    "Erro", JOptionPane.ERROR_MESSAGE
-            );
-        }
+    public String getValor() {
+        return campoValor.getText().trim();
     }
+
+    public String getData() {
+        return campoData.getText().trim();
+    }
+
+    public String getDescricao() {
+        return campoDescricao.getText().trim();
+    }
+
+    public String getClassificacao() {
+        return (String) comboClassificacao.getSelectedItem();
+    }
+
+    public Categoria getCategoriaSelecionada() {
+        return (Categoria) comboCategoria.getSelectedItem();
+    }
+
+    public void setTextoBotaoRegistrar(String texto) {
+        btnRegistrar.setText(texto);
+    }
+
+    public JButton getBtnRegistrar() {
+        return btnRegistrar;
+    }
+
+    public JButton getBtnVoltar() {
+        return btnVoltar;
+    }
+
+    public void clearCampos() {
+        campoValor.setText("");
+        campoData.setText("");
+        campoDescricao.setText("");
+        comboClassificacao.setSelectedIndex(0);
+        campoValor.requestFocus();
+    }
+
+    public void setValor(String valor) {
+        campoValor.setText(valor);
+    }
+
+    public void setData(String data) {
+        campoData.setText(data);
+    }
+
+    public void setDescricao(String descricao) {
+        campoDescricao.setText(descricao);
+    }
+
+    public void setClassificacao(String classificacao) {
+        comboClassificacao.setSelectedItem(classificacao);
+    }
+
+    public void setCategoriaSelecionada(Categoria categoria) {
+        comboCategoria.setSelectedItem(categoria);
+    }
+
 }

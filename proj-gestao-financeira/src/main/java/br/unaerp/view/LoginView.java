@@ -67,7 +67,7 @@ public class LoginView extends JFrame {
     }
 
     public String getUsuario() {
-        return txtUsuario.getText();
+        return txtUsuario.getText().trim();
     }
 
     public String getSenha() {
