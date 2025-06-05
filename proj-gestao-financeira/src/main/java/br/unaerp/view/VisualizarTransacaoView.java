@@ -311,7 +311,7 @@ public class VisualizarTransacaoView extends JFrame {
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
-                Transacao t = todasTransacoes.get(rowAtivo);
+                Transacao transacao = todasTransacoes.get(rowAtivo);
 
                 if (colAtivo == COL_EXCLUIR) {
                     int confirm = JOptionPane.showConfirmDialog(
@@ -321,13 +321,17 @@ public class VisualizarTransacaoView extends JFrame {
                             JOptionPane.YES_NO_OPTION
                     );
                     if (confirm == JOptionPane.YES_OPTION) {
-                        transacaoDAO.deletar(t);
-                        todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
-                        carregarTabela(todasTransacoes, null, null);
+                        transacaoDAO.deletar(transacao);
+                        SwingUtilities.invokeLater(() -> {
+                            todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+                            carregarTabela(todasTransacoes, null, null);
+                        });
                     }
                 }
                 else if (colAtivo == COL_EDITAR) {
-                    editarTransacao(t);
+                    SwingUtilities.invokeLater(() -> {
+                        editarTransacao(transacao);
+                    });
                 }
             }
             isPushed = false;
