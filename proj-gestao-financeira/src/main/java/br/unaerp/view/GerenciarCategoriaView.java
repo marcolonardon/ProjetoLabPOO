@@ -2,9 +2,11 @@ package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
 import br.unaerp.model.Usuario;
+import br.unaerp.view.util.LimitDocumentFilter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.AbstractDocument;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.List;
@@ -12,19 +14,14 @@ import java.util.List;
 public class GerenciarCategoriaView extends JFrame {
 
     private final Usuario usuario;
-
     private JTabbedPane tabPane;
-
     private JTextField txtNovaCategoria;
     private JButton btnAddCategoria;
-
     private JComboBox<Categoria> cbEditarCategoria;
     private JTextField txtEditarCategoria;
     private JButton btnSalvarEdicao;
-
     private JComboBox<Categoria> cbExcluirCategoria;
     private JButton btnExcluirCategoria;
-
     private JButton btnVoltar;
 
     public GerenciarCategoriaView(Usuario usuario) {
@@ -39,20 +36,17 @@ public class GerenciarCategoriaView extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout(10, 10));
 
-        // Título
         JLabel lblTitulo = new JLabel("Gerenciamento de Categorias");
         lblTitulo.setFont(lblTitulo.getFont().deriveFont(Font.BOLD, 18f));
         lblTitulo.setHorizontalAlignment(SwingConstants.CENTER);
         add(lblTitulo, BorderLayout.NORTH);
 
-        // Abas
         tabPane = new JTabbedPane();
         tabPane.addTab("Adicionar", criarPainelAdicionar());
         tabPane.addTab("Editar", criarPainelEditar());
         tabPane.addTab("Excluir", criarPainelExcluir());
         add(tabPane, BorderLayout.CENTER);
 
-        // Botão Voltar
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(100, 30));
         JPanel southPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
@@ -73,10 +67,11 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1;
         txtNovaCategoria = new JTextField(20);
-        txtNovaCategoria.setToolTipText("Digite o nome da categoria a ser adicionada");
+        ((AbstractDocument) txtNovaCategoria.getDocument())
+                .setDocumentFilter(new LimitDocumentFilter(50));
+        txtNovaCategoria.setToolTipText("Até 50 caracteres");
         panel.add(txtNovaCategoria, gbc);
 
-        // Adicionar
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.EAST;
@@ -87,7 +82,6 @@ public class GerenciarCategoriaView extends JFrame {
         return panel;
     }
 
-    // Editar Categoria
     private JPanel criarPainelEditar() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -110,7 +104,9 @@ public class GerenciarCategoriaView extends JFrame {
 
         gbc.gridx = 1;
         txtEditarCategoria = new JTextField(20);
-        txtEditarCategoria.setToolTipText("Digite o novo nome para a categoria selecionada");
+        ((AbstractDocument) txtEditarCategoria.getDocument())
+                .setDocumentFilter(new LimitDocumentFilter(50));
+        txtEditarCategoria.setToolTipText("Até 50 caracteres");
         panel.add(txtEditarCategoria, gbc);
 
         gbc.gridx = 1;
@@ -123,7 +119,6 @@ public class GerenciarCategoriaView extends JFrame {
         return panel;
     }
 
-    // Excluir Categoria
     private JPanel criarPainelExcluir() {
         JPanel panel = new JPanel(new GridBagLayout());
         panel.setBorder(new EmptyBorder(20, 20, 20, 20));
@@ -193,7 +188,6 @@ public class GerenciarCategoriaView extends JFrame {
             model.addElement(c);
         }
         cbEditarCategoria.setModel(model);
-
         cbEditarCategoria.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,
@@ -213,7 +207,6 @@ public class GerenciarCategoriaView extends JFrame {
             model.addElement(c);
         }
         cbExcluirCategoria.setModel(model);
-
         cbExcluirCategoria.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index,

@@ -1,8 +1,11 @@
 package br.unaerp.view;
 
+import br.unaerp.view.util.LimitDocumentFilter;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.*;
+import javax.swing.text.AbstractDocument;
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.text.ParseException;
@@ -54,7 +57,7 @@ public class CadastroUsuarioView extends JFrame {
 
         JLabel labelLogin = new JLabel("Usuário:");
         campoLogin = new JTextField(20);
-        campoLogin.setDocument(new LimitDocument(50));
+        ((AbstractDocument) campoLogin.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 0;
         gbc.gridy = 0;
         formPanel.add(labelLogin, gbc);
@@ -63,7 +66,7 @@ public class CadastroUsuarioView extends JFrame {
 
         JLabel labelNome = new JLabel("Nome:");
         campoNome = new JTextField(20);
-        campoNome.setDocument(new LimitDocument(50));
+        ((AbstractDocument) campoNome.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 0;
         gbc.gridy = 1;
         formPanel.add(labelNome, gbc);
@@ -93,7 +96,7 @@ public class CadastroUsuarioView extends JFrame {
 
         JLabel labelSenha = new JLabel("Senha:");
         campoSenha = new JPasswordField(20);
-        campoSenha.setDocument(new LimitDocument(50));
+        ((AbstractDocument) campoSenha.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 0;
         gbc.gridy = 4;
         formPanel.add(labelSenha, gbc);
@@ -102,7 +105,7 @@ public class CadastroUsuarioView extends JFrame {
 
         JLabel labelConfirmarSenha = new JLabel("Confirmar Senha:");
         campoConfirmarSenha = new JPasswordField(20);
-        campoConfirmarSenha.setDocument(new LimitDocument(50));
+        ((AbstractDocument) campoConfirmarSenha.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 0;
         gbc.gridy = 5;
         formPanel.add(labelConfirmarSenha, gbc);
@@ -230,31 +233,5 @@ public class CadastroUsuarioView extends JFrame {
 
     public void addVoltarListener(ActionListener listener) {
         botaoVoltar.addActionListener(listener);
-    }
-
-    /**
-     * Documento que limita o número de caracteres inseridos.
-     */
-    private static class LimitDocument extends PlainDocument {
-        private final int maxLength;
-
-        public LimitDocument(int maxLength) {
-            this.maxLength = maxLength;
-        }
-
-        @Override
-        public void insertString(int offs, String str, AttributeSet a) throws BadLocationException {
-            if (str == null) {
-                return;
-            }
-            int currentLength = getLength();
-            int newLength = currentLength + str.length();
-            if (newLength <= maxLength) {
-                super.insertString(offs, str, a);
-            } else {
-                String truncated = str.substring(0, maxLength - currentLength);
-                super.insertString(offs, truncated, a);
-            }
-        }
     }
 }

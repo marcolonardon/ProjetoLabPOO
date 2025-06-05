@@ -2,11 +2,13 @@ package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
 import br.unaerp.model.Usuario;
+import br.unaerp.view.util.LimitDocumentFilter;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.text.NumberFormatter;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -112,6 +114,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridy = y;
         panel.add(new JLabel("*Descrição:"), gbc);
         campoDescricao = new JTextField(15);
+        ((AbstractDocument) campoDescricao.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 

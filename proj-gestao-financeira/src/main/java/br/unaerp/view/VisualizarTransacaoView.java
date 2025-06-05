@@ -7,12 +7,14 @@ import br.unaerp.model.DAO.CategoriaDAOImpl;
 import br.unaerp.model.DAO.CategoriaDAO;
 import br.unaerp.model.DAO.TransacaoDAOImpl;
 import br.unaerp.model.DAO.TransacaoDAO;
+import br.unaerp.view.util.LimitDocumentFilter;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.text.AbstractDocument;
 import javax.swing.text.MaskFormatter;
 import javax.swing.text.NumberFormatter;
 import java.awt.*;
@@ -514,6 +516,7 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridy = y;
         panel.add(new JLabel("Descrição:"), gbc);
         JTextField txtDesc = new JTextField(transacao.getDescricao(), 15);
+        ((AbstractDocument) txtDesc.getDocument()).setDocumentFilter(new LimitDocumentFilter(50));
         gbc.gridx = 1;
         panel.add(txtDesc, gbc);
 
