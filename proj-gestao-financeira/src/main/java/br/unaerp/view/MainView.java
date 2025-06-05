@@ -102,11 +102,4 @@ public class MainView extends JFrame {
         saldoLabel.setText("Saldo: R$ " + String.format("%.2f", saldoAtual));
     }
 
-    public JButton getBtnCadastrarTransacao() {
-        return btnCadastrarTransacao;
-    }
-
-    public JButton getBtnVisualizarTransacoes() {
-        return btnVisualizarTransacoes;
-    }
 }

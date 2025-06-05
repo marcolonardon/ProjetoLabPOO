@@ -1,11 +1,11 @@
 package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
-import br.unaerp.model.CategoriaDAO;
-import br.unaerp.model.CategoriaDAOImpl;
+import br.unaerp.model.DAO.CategoriaDAO;
+import br.unaerp.model.DAO.CategoriaDAOImpl;
 import br.unaerp.model.Transacao;
-import br.unaerp.model.TransacaoDAO;
-import br.unaerp.model.TransacaoDAOImpl;
+import br.unaerp.model.DAO.TransacaoDAO;
+import br.unaerp.model.DAO.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -181,8 +181,8 @@ public class GerenciarCategoriaView extends JFrame {
                 return;
             }
 
-            Categoria cat = categoriaDAO.buscarPorNomeEUsuario(atual, usuario.getLogin());
-            if (cat == null) {
+            Categoria categoria = categoriaDAO.buscarPorNomeEUsuario(atual, usuario.getLogin());
+            if (categoria == null) {
                 JOptionPane.showMessageDialog(
                         this,
                         "Categoria não encontrada no banco.",
@@ -204,8 +204,8 @@ public class GerenciarCategoriaView extends JFrame {
                 return;
             }
 
-            cat.setNome(novoNome);
-            categoriaDAO.atualizar(cat);
+            categoria.setNome(novoNome);
+            categoriaDAO.atualizar(categoria);
             JOptionPane.showMessageDialog(
                     this,
                     "Categoria editada com sucesso.",

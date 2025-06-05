@@ -1,13 +1,14 @@
 package br.unaerp.model;
 
-import java.time.LocalDate;
+import br.unaerp.model.DAO.TransacaoDAO;
+import br.unaerp.model.DAO.TransacaoDAOImpl;
+
 import java.util.List;
 
 public class Conta {
 
     private final Usuario usuario;
     private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
-    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
 
     public Conta(Usuario usuario) {
         this.usuario = usuario;

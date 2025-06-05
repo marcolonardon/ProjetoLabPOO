@@ -1,4 +1,6 @@
-package br.unaerp.model;
+package br.unaerp.model.DAO;
+
+import br.unaerp.model.Categoria;
 
 import java.util.List;
 

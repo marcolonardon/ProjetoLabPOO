@@ -47,27 +47,32 @@ public class CadastroUsuarioView extends JFrame {
         JLabel labelSenha = new JLabel("Senha:");
         campoSenha = new JPasswordField(20);
 
-        gbc.gridx = 0; gbc.gridy = 0;
+        gbc.gridx = 0;
+        gbc.gridy = 0;
         formPanel.add(labelLogin, gbc);
         gbc.gridx = 1;
         formPanel.add(campoLogin, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 1;
+        gbc.gridx = 0;
+        gbc.gridy = 1;
         formPanel.add(labelNome, gbc);
         gbc.gridx = 1;
         formPanel.add(campoNome, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 2;
         formPanel.add(labelTipo, gbc);
         gbc.gridx = 1;
         formPanel.add(campoTipo, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 3;
+        gbc.gridx = 0;
+        gbc.gridy = 3;
         formPanel.add(labelDocumento, gbc);
         gbc.gridx = 1;
         formPanel.add(campoDocumento, gbc);
 
-        gbc.gridx = 0; gbc.gridy = 4;
+        gbc.gridx = 0;
+        gbc.gridy = 4;
         formPanel.add(labelSenha, gbc);
         gbc.gridx = 1;
         formPanel.add(campoSenha, gbc);
@@ -80,18 +85,39 @@ public class CadastroUsuarioView extends JFrame {
         btnPanel.add(botaoSalvar);
         btnPanel.add(botaoVoltar);
 
-        gbc.gridx = 0; gbc.gridy = 5; gbc.gridwidth = 2;
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.gridwidth = 2;
         formPanel.add(btnPanel, gbc);
 
         add(formPanel, BorderLayout.CENTER);
     }
 
-    public String getLogin() { return campoLogin.getText().trim(); }
-    public String getNome() { return campoNome.getText().trim(); }
-    public String getTipoUsuario() { return (String) campoTipo.getSelectedItem(); }
-    public String getDocumento() { return campoDocumento.getText().trim(); }
-    public String getSenha() { return new String(campoSenha.getPassword()); }
+    public String getLogin() {
+        return campoLogin.getText().trim();
+    }
 
-    public void addSalvarListener(ActionListener listener) { botaoSalvar.addActionListener(listener); }
-    public void addVoltarListener(ActionListener listener) { botaoVoltar.addActionListener(listener); }
+    public String getNome() {
+        return campoNome.getText().trim();
+    }
+
+    public String getTipoUsuario() {
+        return (String) campoTipo.getSelectedItem();
+    }
+
+    public String getDocumento() {
+        return campoDocumento.getText().trim();
+    }
+
+    public String getSenha() {
+        return new String(campoSenha.getPassword());
+    }
+
+    public void addSalvarListener(ActionListener listener) {
+        botaoSalvar.addActionListener(listener);
+    }
+
+    public void addVoltarListener(ActionListener listener) {
+        botaoVoltar.addActionListener(listener);
+    }
 }

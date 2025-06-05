@@ -1,6 +1,7 @@
 package br.unaerp.model;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDate;
 
 @Entity
@@ -102,14 +103,4 @@ public class Transacao {
         this.categoria = categoria;
     }
 
-    public String getTransacaoString() {
-        return String.format("%02d/%02d/%04d - %s: R$ %.2f (%s) (%s)",
-                data.getDayOfMonth(),
-                data.getMonthValue(),
-                data.getYear(),
-                descricao,
-                valor,
-                classificacao,
-                categoria.getNome());
-    }
 }

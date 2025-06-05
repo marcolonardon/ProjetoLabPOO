@@ -1,11 +1,11 @@
 package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
-import br.unaerp.model.CategoriaDAO;
-import br.unaerp.model.CategoriaDAOImpl;
+import br.unaerp.model.DAO.CategoriaDAO;
+import br.unaerp.model.DAO.CategoriaDAOImpl;
 import br.unaerp.model.Transacao;
-import br.unaerp.model.TransacaoDAO;
-import br.unaerp.model.TransacaoDAOImpl;
+import br.unaerp.model.DAO.TransacaoDAO;
+import br.unaerp.model.DAO.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -57,7 +57,8 @@ public class RegistrarTransacaoView extends JFrame {
 
         int y = 0;
         // Valor
-        gbc.gridx = 0; gbc.gridy = y;
+        gbc.gridx = 0;
+        gbc.gridy = y;
         panel.add(new JLabel("*Valor (R$):"), gbc);
         campoValor = new JTextField(10);
         gbc.gridx = 1;
@@ -65,7 +66,8 @@ public class RegistrarTransacaoView extends JFrame {
 
         // Data
         y++;
-        gbc.gridx = 0; gbc.gridy = y;
+        gbc.gridx = 0;
+        gbc.gridy = y;
         panel.add(new JLabel("*Data (dd/MM/yyyy):"), gbc);
         try {
             MaskFormatter mask = new MaskFormatter("##/##/####");
@@ -80,7 +82,8 @@ public class RegistrarTransacaoView extends JFrame {
 
         // Classificação
         y++;
-        gbc.gridx = 0; gbc.gridy = y;
+        gbc.gridx = 0;
+        gbc.gridy = y;
         panel.add(new JLabel("*Classificação:"), gbc);
         comboClassificacao = new JComboBox<>(new String[]{"Receita", "Despesa"});
         gbc.gridx = 1;
@@ -88,7 +91,8 @@ public class RegistrarTransacaoView extends JFrame {
 
         // Categoria
         y++;
-        gbc.gridx = 0; gbc.gridy = y;
+        gbc.gridx = 0;
+        gbc.gridy = y;
         panel.add(new JLabel("*Categoria:"), gbc);
 
         // Carrega categorias
@@ -102,7 +106,8 @@ public class RegistrarTransacaoView extends JFrame {
 
         // Descrição
         y++;
-        gbc.gridx = 0; gbc.gridy = y;
+        gbc.gridx = 0;
+        gbc.gridy = y;
         panel.add(new JLabel("*Descrição:"), gbc);
         campoDescricao = new JTextField(15);
         gbc.gridx = 1;
@@ -112,12 +117,15 @@ public class RegistrarTransacaoView extends JFrame {
         y++;
         btnRegistrar = new JButton("Registrar");
         btnRegistrar.setPreferredSize(new Dimension(120, 30));
-        gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.EAST;
+        gbc.gridx = 0;
+        gbc.gridy = y;
+        gbc.anchor = GridBagConstraints.EAST;
         panel.add(btnRegistrar, gbc);
 
         btnVoltar = new JButton("Voltar");
         btnVoltar.setPreferredSize(new Dimension(120, 30));
-        gbc.gridx = 1; gbc.anchor = GridBagConstraints.WEST;
+        gbc.gridx = 1;
+        gbc.anchor = GridBagConstraints.WEST;
         panel.add(btnVoltar, gbc);
 
         add(panel, BorderLayout.CENTER);

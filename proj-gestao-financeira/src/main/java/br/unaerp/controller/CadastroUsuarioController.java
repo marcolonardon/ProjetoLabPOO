@@ -1,11 +1,9 @@
 package br.unaerp.controller;
 
 import br.unaerp.model.Categoria;
-import br.unaerp.model.CategoriaDAO;
-import br.unaerp.model.CategoriaDAOImpl;
 import br.unaerp.model.Usuario;
-import br.unaerp.model.UsuarioDAO;
-import br.unaerp.model.UsuarioDAOImpl;
+import br.unaerp.model.DAO.UsuarioDAO;
+import br.unaerp.model.DAO.UsuarioDAOImpl;
 import br.unaerp.view.CadastroUsuarioView;
 import br.unaerp.view.LoginView;
 
@@ -14,7 +12,6 @@ import javax.swing.*;
 public class CadastroUsuarioController {
     private final CadastroUsuarioView cadastroView;
     private final UsuarioDAO usuarioDAO = new UsuarioDAOImpl();
-    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
 
     public CadastroUsuarioController(CadastroUsuarioView cadastroView) {
         this.cadastroView = cadastroView;
@@ -53,7 +50,7 @@ public class CadastroUsuarioController {
 
         Categoria catSalario = new Categoria("Salário", novoUsuario);
         Categoria catMercado = new Categoria("Mercado", novoUsuario);
-        Categoria catSaude  = new Categoria("Saúde", novoUsuario);
+        Categoria catSaude = new Categoria("Saúde", novoUsuario);
         novoUsuario.adicionarCategoria(catSalario);
         novoUsuario.adicionarCategoria(catMercado);
         novoUsuario.adicionarCategoria(catSaude);

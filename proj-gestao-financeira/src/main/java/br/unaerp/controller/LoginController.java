@@ -1,8 +1,8 @@
 package br.unaerp.controller;
 
 import br.unaerp.model.Usuario;
-import br.unaerp.model.UsuarioDAO;
-import br.unaerp.model.UsuarioDAOImpl;
+import br.unaerp.model.DAO.UsuarioDAO;
+import br.unaerp.model.DAO.UsuarioDAOImpl;
 import br.unaerp.view.CadastroUsuarioView;
 import br.unaerp.view.LoginView;
 import br.unaerp.view.MainView;
@@ -31,8 +31,8 @@ public class LoginController {
         UsuarioDAO dao = new UsuarioDAOImpl();
         List<Usuario> lista = dao.obterTodos();
         usuariosEmMemoria.clear();
-        for (Usuario u : lista) {
-            usuariosEmMemoria.put(u.getLogin(), u);
+        for (Usuario usuario : lista) {
+            usuariosEmMemoria.put(usuario.getLogin(), usuario);
         }
     }
 
@@ -40,13 +40,13 @@ public class LoginController {
         String usuario = loginView.getUsuario();
         String senha = loginView.getSenha();
 
-        Usuario u = usuariosEmMemoria.get(usuario);
+        Usuario usuarioMemoria = usuariosEmMemoria.get(usuario);
 
-        if (u != null && u.verificarSenha(senha)) {
+        if (usuarioMemoria != null && usuarioMemoria.verificarSenha(senha)) {
             JOptionPane.showMessageDialog(loginView, "Login realizado com sucesso!");
             SwingUtilities.invokeLater(() -> {
-                MainView mainView = new MainView(u);
-                new MainController(u, mainView);
+                MainView mainView = new MainView(usuarioMemoria);
+                new MainController(usuarioMemoria, mainView);
                 mainView.setVisible(true);
                 loginView.dispose();
             });

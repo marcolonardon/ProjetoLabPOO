@@ -1,26 +1,24 @@
-package br.unaerp.model;
+package br.unaerp.model.DAO;
 
+import br.unaerp.model.Transacao;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
 
+import java.time.LocalDate;
 import java.util.List;
 
-public class CategoriaDAOImpl implements CategoriaDAO {
+public class TransacaoDAOImpl implements TransacaoDAO {
     private static final SessionFactory factory = new Configuration().configure().buildSessionFactory();
 
     @Override
-    public void salvar(Categoria categoria) {
+    public void salvar(Transacao transacao) {
         Transaction tx = null;
         try (Session session = factory.openSession()) {
             tx = session.beginTransaction();
-            String loginUsuario = categoria.getUsuario().getLogin();
-            Usuario managedUser = session.get(Usuario.class, loginUsuario);
-            categoria.setUsuario(managedUser);
-            session.persist(categoria);
+            session.persist(transacao);
             tx.commit();
-
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             e.printStackTrace();
@@ -28,9 +26,9 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     @Override
-    public Categoria buscarPorId(Integer id) {
+    public Transacao buscarPorId(Integer id) {
         try (Session session = factory.openSession()) {
-            return session.get(Categoria.class, id);
+            return session.get(Transacao.class, id);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -39,11 +37,16 @@ public class CategoriaDAOImpl implements CategoriaDAO {
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<Categoria> buscarPorUsuario(String loginUsuario) {
+    public List<Transacao> buscarPorUsuario(String loginUsuario) {
         try (Session session = factory.openSession()) {
-            return session.createQuery(
-                            "FROM Categoria c WHERE c.usuario.login = :loginUsuario"
-                    )
+            String hql =
+                    "SELECT t " +
+                            "FROM Transacao t " +
+                            "JOIN FETCH t.categoria c " +
+                            "WHERE t.usuario.login = :loginUsuario " +
+                            "ORDER BY t.data DESC";
+
+            return session.createQuery(hql)
                     .setParameter("loginUsuario", loginUsuario)
                     .list();
         } catch (Exception e) {
@@ -52,28 +55,31 @@ public class CategoriaDAOImpl implements CategoriaDAO {
         }
     }
 
+
     @Override
-    public Categoria buscarPorNomeEUsuario(String nome, String loginUsuario) {
+    @SuppressWarnings("unchecked")
+    public List<Transacao> buscarPorUsuarioEPeriodo(String loginUsuario, LocalDate dataInicio, LocalDate dataFim) {
         try (Session session = factory.openSession()) {
-            return session.createQuery(
-                            "FROM Categoria c WHERE c.nome = :nome AND c.usuario.login = :loginUsuario",
-                            Categoria.class
-                    )
-                    .setParameter("nome", nome)
+            String hql = "FROM Transacao t WHERE t.usuario.login = :loginUsuario "
+                    + "AND t.data BETWEEN :dataInicio AND :dataFim "
+                    + "ORDER BY t.data DESC";
+            return session.createQuery(hql)
                     .setParameter("loginUsuario", loginUsuario)
-                    .uniqueResult();
+                    .setParameter("dataInicio", dataInicio)
+                    .setParameter("dataFim", dataFim)
+                    .list();
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return List.of();
         }
     }
 
     @Override
-    public void atualizar(Categoria categoria) {
+    public void atualizar(Transacao transacao) {
         Transaction tx = null;
         try (Session session = factory.openSession()) {
             tx = session.beginTransaction();
-            session.merge(categoria);
+            session.merge(transacao);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
@@ -82,11 +88,11 @@ public class CategoriaDAOImpl implements CategoriaDAO {
     }
 
     @Override
-    public void deletar(Categoria categoria) {
+    public void deletar(Transacao transacao) {
         Transaction tx = null;
         try (Session session = factory.openSession()) {
             tx = session.beginTransaction();
-            session.remove(categoria);
+            session.remove(transacao);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
