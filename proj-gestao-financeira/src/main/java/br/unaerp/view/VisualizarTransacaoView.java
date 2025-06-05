@@ -1,12 +1,12 @@
 package br.unaerp.view;
 
 import br.unaerp.model.Categoria;
-import br.unaerp.model.DAO.CategoriaDAO;
-import br.unaerp.model.DAO.CategoriaDAOImpl;
 import br.unaerp.model.Transacao;
-import br.unaerp.model.DAO.TransacaoDAO;
-import br.unaerp.model.DAO.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
+import br.unaerp.model.DAO.CategoriaDAOImpl;
+import br.unaerp.model.DAO.CategoriaDAO;
+import br.unaerp.model.DAO.TransacaoDAOImpl;
+import br.unaerp.model.DAO.TransacaoDAO;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -14,7 +14,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.awt.event.ItemEvent;
+import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -24,79 +24,82 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class VisualizarTransacaoView extends JFrame {
-
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
     private final Usuario usuario;
-    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
+
     private JTable table;
     private DefaultTableModel tableModel;
+    private JLabel lblResumo;
+    private JButton btnVoltarTransacoes;
+
     private JFormattedTextField txtDataInicio;
     private JFormattedTextField txtDataFim;
-    private JCheckBox chkTodas, chkReceita, chkDespesa;
-    private JCheckBox chkTodasCats;
-    private List<JCheckBox> chkCategorias;
-    private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros, btnVoltarTransacoes;
-    private JLabel lblResumo;
+    private JCheckBox chkTodasDatas;
+    private JCheckBox chkReceita, chkDespesa;
+    private JCheckBox chkTodasCategorias;
+    private List<JCheckBox> chkCategorias; // será preenchido pelo Controller
+    private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros;
+
     private JTabbedPane tabPane;
+
+    private JPanel panelCategoriasBox;
+
     private static final int COL_EDITAR = 5;
     private static final int COL_EXCLUIR = 6;
-    private List<Transacao> todasTransacoes;
+
+    private List<Transacao> listaTransacoesAtuais = new ArrayList<>();
+
+    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
+    private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
 
     public VisualizarTransacaoView(Usuario usuario) {
         super("Visualizar Transações");
         this.usuario = usuario;
-
-        todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
-
         initComponents();
-
-        carregarTabela(todasTransacoes, null, null);
     }
 
     private void initComponents() {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(750, 480);
+        setSize(800, 520);
         setLocationRelativeTo(null);
 
         tabPane = new JTabbedPane();
 
-        // Aba Transações
         JPanel panelTransacoes = new JPanel(new BorderLayout(10, 10));
 
         String[] cols = {"Data", "Descrição", "Valor", "Classificação", "Categoria", "Editar", "Excluir"};
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
+                // Só as colunas “Editar” e “Excluir” são clicáveis
                 return (col == COL_EDITAR || col == COL_EXCLUIR);
             }
         };
         table = new JTable(tableModel);
+
         table.getColumnModel().getColumn(1).setCellRenderer(new TextAreaRenderer());
         table.getColumnModel().getColumn(COL_EDITAR).setPreferredWidth(80);
         table.getColumnModel().getColumn(COL_EDITAR).setMaxWidth(80);
         table.getColumnModel().getColumn(COL_EXCLUIR).setPreferredWidth(80);
         table.getColumnModel().getColumn(COL_EXCLUIR).setMaxWidth(80);
+
         table.getColumn("Editar").setCellRenderer(new ButtonRenderer());
         table.getColumn("Editar").setCellEditor(new ButtonEditor(new JCheckBox()));
+
         table.getColumn("Excluir").setCellRenderer(new ButtonRenderer());
         table.getColumn("Excluir").setCellEditor(new ButtonEditor(new JCheckBox()));
 
         panelTransacoes.add(new JScrollPane(table), BorderLayout.CENTER);
 
-        // Resumo
         lblResumo = new JLabel(
-                "Período: (total) - Total Receitas: R$ 0.00   Total Despesas: R$ 0.00",
+                "Período: (total)   -   Total Receitas: R$ 0.00   Total Despesas: R$ 0.00",
                 SwingConstants.CENTER
         );
         lblResumo.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
 
-        // Botão Voltar
         btnVoltarTransacoes = new JButton("Voltar");
         btnVoltarTransacoes.setPreferredSize(new Dimension(100, 30));
-        btnVoltarTransacoes.addActionListener(e -> {
-            new MainView(usuario).setVisible(true);
-            dispose();
-        });
         JPanel backPanelTrans = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         backPanelTrans.add(btnVoltarTransacoes);
 
@@ -106,16 +109,16 @@ public class VisualizarTransacaoView extends JFrame {
         southContainer.add(backPanelTrans, BorderLayout.SOUTH);
         panelTransacoes.add(southContainer, BorderLayout.SOUTH);
 
-        // Aba Filtros
         JPanel filtroPanel = new JPanel();
         filtroPanel.setLayout(new BoxLayout(filtroPanel, BoxLayout.Y_AXIS));
         filtroPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        // Período
         JPanel periodoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
         periodoPanel.setBorder(new TitledBorder("Período"));
-        chkTodas = new JCheckBox("Todas as transações", true);
-        periodoPanel.add(chkTodas);
+
+        chkTodasDatas = new JCheckBox("Todas as transações", true);
+        periodoPanel.add(chkTodasDatas);
+
         try {
             MaskFormatter mask = new MaskFormatter("##/##/####");
             mask.setPlaceholderCharacter('_');
@@ -129,23 +132,23 @@ public class VisualizarTransacaoView extends JFrame {
         txtDataInicio.setEnabled(false);
         txtDataFim.setColumns(8);
         txtDataFim.setEnabled(false);
+
         periodoPanel.add(new JLabel("De:"));
         periodoPanel.add(txtDataInicio);
         periodoPanel.add(new JLabel("Até:"));
         periodoPanel.add(txtDataFim);
         filtroPanel.add(periodoPanel);
 
-        chkTodas.addItemListener(e -> {
-            boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
-            txtDataInicio.setEnabled(!selected);
-            txtDataFim.setEnabled(!selected);
-            if (selected) {
+        chkTodasDatas.addActionListener(e -> {
+            boolean selecionado = chkTodasDatas.isSelected();
+            txtDataInicio.setEnabled(!selecionado);
+            txtDataFim.setEnabled(!selecionado);
+            if (selecionado) {
                 txtDataInicio.setValue(null);
                 txtDataFim.setValue(null);
             }
         });
 
-        // Classificações
         JPanel classPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 5));
         classPanel.setBorder(new TitledBorder("Classificações"));
         chkReceita = new JCheckBox("Receita", true);
@@ -154,43 +157,22 @@ public class VisualizarTransacaoView extends JFrame {
         classPanel.add(chkDespesa);
         filtroPanel.add(classPanel);
 
-        // Categorias
         JPanel catPanel = new JPanel(new BorderLayout());
         catPanel.setBorder(new TitledBorder("Categorias (selecione múltiplas)"));
-        JPanel boxPanel = new JPanel();
-        boxPanel.setLayout(new BoxLayout(boxPanel, BoxLayout.Y_AXIS));
 
-        chkTodasCats = new JCheckBox("Todas", true);
-        boxPanel.add(chkTodasCats);
+        panelCategoriasBox = new JPanel();
+        panelCategoriasBox.setLayout(new BoxLayout(panelCategoriasBox, BoxLayout.Y_AXIS));
+
+        chkTodasCategorias = new JCheckBox("Todas", true);
+        panelCategoriasBox.add(chkTodasCategorias);
+
         chkCategorias = new ArrayList<>();
 
-        CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
-        List<Categoria> listaCategorias = categoriaDAO.buscarPorUsuario(usuario.getLogin());
-        for (Categoria categoria : listaCategorias) {
-            String nomeCategoria = categoria.getNome();
-            JCheckBox checkBox = new JCheckBox(nomeCategoria, true);
-            chkCategorias.add(checkBox);
-            boxPanel.add(checkBox);
-        }
-        chkTodasCats.addActionListener(e ->
-                chkCategorias.forEach(checkBox -> checkBox.setSelected(chkTodasCats.isSelected()))
-        );
-        chkCategorias.forEach(checkBox ->
-                checkBox.addActionListener(e -> {
-                    if (!checkBox.isSelected()) {
-                        chkTodasCats.setSelected(false);
-                    } else if (chkCategorias.stream().allMatch(JCheckBox::isSelected)) {
-                        chkTodasCats.setSelected(true);
-                    }
-                })
-        );
-
-        JScrollPane categoriaScroll = new JScrollPane(boxPanel);
+        JScrollPane categoriaScroll = new JScrollPane(panelCategoriasBox);
         categoriaScroll.setPreferredSize(new Dimension(250, 120));
         catPanel.add(categoriaScroll, BorderLayout.CENTER);
         filtroPanel.add(catPanel);
 
-        // Filtros
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         btnFiltrar = new JButton("Filtrar");
         btnFiltrar.setPreferredSize(new Dimension(100, 30));
@@ -198,61 +180,160 @@ public class VisualizarTransacaoView extends JFrame {
         btnAtualizar.setPreferredSize(new Dimension(100, 30));
         btnVoltarFiltros = new JButton("Voltar");
         btnVoltarFiltros.setPreferredSize(new Dimension(100, 30));
+
         btnPanel.add(btnFiltrar);
         btnPanel.add(btnAtualizar);
         btnPanel.add(btnVoltarFiltros);
         filtroPanel.add(btnPanel);
 
-        btnFiltrar.addActionListener(e -> {
-            aplicarFiltro();
-            tabPane.setSelectedIndex(0);
-        });
-
-        btnAtualizar.addActionListener(e -> {
-            chkTodas.setSelected(true);
-            chkReceita.setSelected(true);
-            chkDespesa.setSelected(true);
-            chkTodasCats.setSelected(true);
-            chkCategorias.forEach(checkBox -> checkBox.setSelected(true));
-
-            todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
-            carregarTabela(todasTransacoes, null, null);
-        });
-
-        btnVoltarFiltros.addActionListener(e -> {
-            new MainView(usuario).setVisible(true);
-            dispose();
-        });
-
         tabPane.addTab("Transações", panelTransacoes);
         tabPane.addTab("Filtros", filtroPanel);
+
         add(tabPane);
     }
 
-    private void carregarTabela(List<Transacao> transacoes, LocalDate inicio, LocalDate fim) {
+    public void setListaTransacoes(List<Transacao> transacoes) {
+        listaTransacoesAtuais = transacoes;
         tableModel.setRowCount(0);
-        double somaReceita = 0, somaDespesa = 0;
 
-        for (Transacao transacao : transacoes) {
-            String dataStr = DATE_FMT.format(transacao.getData());
-            String desc = transacao.getDescricao();
-            String valStr = String.format("R$ %.2f", transacao.getValor());
-            String clas = transacao.getClassificacao();
-            String cat = transacao.getCategoria().getNome();
+        double somaReceita = 0, somaDespesa = 0;
+        for (Transacao t : transacoes) {
+            String dataStr = DATE_FMT.format(t.getData());
+            String desc = t.getDescricao();
+            String valStr = String.format("R$ %.2f", t.getValor());
+            String clas = t.getClassificacao();
+            String cat = t.getCategoria().getNome();
 
             tableModel.addRow(new Object[]{dataStr, desc, valStr, clas, cat, "Editar", "Excluir"});
-
-            if ("Receita".equalsIgnoreCase(clas)) somaReceita += transacao.getValor();
-            else somaDespesa += transacao.getValor();
+            if ("Receita".equalsIgnoreCase(clas)) somaReceita += t.getValor();
+            else somaDespesa += t.getValor();
         }
 
-        String label = (inicio == null || fim == null)
-                ? "(total)"
-                : String.format("(%s - %s)", DATE_FMT.format(inicio), DATE_FMT.format(fim));
-        lblResumo.setText(
-                String.format("Período: %s - Total Receitas: R$ %.2f   Total Despesas: R$ %.2f",
-                        label, somaReceita, somaDespesa)
-        );
+        lblResumo.setText(String.format(
+                "Período: (total)   -   Total Receitas: R$ %.2f   Total Despesas: R$ %.2f",
+                somaReceita, somaDespesa));
+    }
+
+    public void setListaTransacoesFiltradas(List<Transacao> transacoes,
+                                            java.time.LocalDate dataIni,
+                                            java.time.LocalDate dataFim) {
+        listaTransacoesAtuais = transacoes;
+        tableModel.setRowCount(0);
+
+        double somaReceita = 0, somaDespesa = 0;
+        for (Transacao t : transacoes) {
+            String dataStr = DATE_FMT.format(t.getData());
+            String desc = t.getDescricao();
+            String valStr = String.format("R$ %.2f", t.getValor());
+            String clas = t.getClassificacao();
+            String cat = t.getCategoria().getNome();
+
+            tableModel.addRow(new Object[]{dataStr, desc, valStr, clas, cat, "Editar", "Excluir"});
+            if ("Receita".equalsIgnoreCase(clas)) somaReceita += t.getValor();
+            else somaDespesa += t.getValor();
+        }
+
+        String labelPeriodo = "(total)";
+        if (dataIni != null && dataFim != null) {
+            labelPeriodo = String.format("(%s - %s)", DATE_FMT.format(dataIni), DATE_FMT.format(dataFim));
+        }
+        lblResumo.setText(String.format(
+                "Período: %s   -   Total Receitas: R$ %.2f   Total Despesas: R$ %.2f",
+                labelPeriodo, somaReceita, somaDespesa));
+    }
+
+    public void setListaCategoriasFiltro(List<Categoria> listaCategorias) {
+        panelCategoriasBox.removeAll();
+        panelCategoriasBox.add(chkTodasCategorias);
+        chkCategorias.clear();
+
+        for (Categoria c : listaCategorias) {
+            JCheckBox cb = new JCheckBox(c.getNome(), true);
+            chkCategorias.add(cb);
+            panelCategoriasBox.add(cb);
+
+            cb.addActionListener(e -> {
+                if (!cb.isSelected()) {
+                    chkTodasCategorias.setSelected(false);
+                } else {
+                    boolean todasSel = chkCategorias.stream().allMatch(JCheckBox::isSelected);
+                    chkTodasCategorias.setSelected(todasSel);
+                }
+            });
+        }
+
+        chkTodasCategorias.addActionListener(e -> {
+            boolean seleciona = chkTodasCategorias.isSelected();
+            chkCategorias.forEach(cb -> cb.setSelected(seleciona));
+        });
+
+        panelCategoriasBox.revalidate();
+        panelCategoriasBox.repaint();
+    }
+
+    public List<Transacao> getListaTransacoesAtuais() {
+        return Collections.unmodifiableList(listaTransacoesAtuais);
+    }
+
+    public Transacao getTransacaoPorLinha(int linha) {
+        if (linha < 0 || linha >= listaTransacoesAtuais.size()) return null;
+        return listaTransacoesAtuais.get(linha);
+    }
+
+    public JTable getTable() {
+        return table;
+    }
+
+
+    public boolean isTodasDatasSelecionado() {
+        return chkTodasDatas.isSelected();
+    }
+
+    public String getDataInicio() {
+        return txtDataInicio.getText().trim();
+    }
+
+    public String getDataFim() {
+        return txtDataFim.getText().trim();
+    }
+
+    public boolean isReceitaSelecionado() {
+        return chkReceita.isSelected();
+    }
+
+    public boolean isDespesaSelecionado() {
+        return chkDespesa.isSelected();
+    }
+
+    public boolean isTodasCategoriasSelecionado() {
+        return chkTodasCategorias.isSelected();
+    }
+
+    public List<String> getCategoriasSelecionadas() {
+        return chkCategorias.stream()
+                .filter(JCheckBox::isSelected)
+                .map(JCheckBox::getText)
+                .collect(Collectors.toList());
+    }
+
+    public void addFiltrarListener(ActionListener l) {
+        btnFiltrar.addActionListener(l);
+    }
+
+    public void addAtualizarListener(ActionListener l) {
+        btnAtualizar.addActionListener(l);
+    }
+
+    public void addVoltarFiltrosListener(ActionListener l) {
+        btnVoltarFiltros.addActionListener(l);
+    }
+
+    public void addVoltarTransacoesListener(ActionListener l) {
+        btnVoltarTransacoes.addActionListener(l);
+    }
+
+    public void selecionarAbaTransacoes() {
+        tabPane.setSelectedIndex(0);
     }
 
     static class TextAreaRenderer extends JTextArea implements TableCellRenderer {
@@ -289,8 +370,7 @@ public class VisualizarTransacaoView extends JFrame {
     }
 
     class ButtonEditor extends DefaultCellEditor {
-        private JButton button;
-        private String label;
+        private final JButton button;
         private boolean isPushed;
         private int rowAtivo;
         private int colAtivo;
@@ -299,15 +379,13 @@ public class VisualizarTransacaoView extends JFrame {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
-
             button.addActionListener(e -> fireEditingStopped());
         }
 
         @Override
         public Component getTableCellEditorComponent(
                 JTable table, Object value, boolean isSelected, int row, int column) {
-            label = (value == null) ? "" : value.toString();
-            button.setText(label);
+            button.setText((value == null) ? "" : value.toString());
             isPushed = true;
             rowAtivo = row;
             colAtivo = column;
@@ -317,30 +395,27 @@ public class VisualizarTransacaoView extends JFrame {
         @Override
         public Object getCellEditorValue() {
             if (isPushed) {
-                Transacao transacao = todasTransacoes.get(rowAtivo);
-
-                if (colAtivo == COL_EXCLUIR) {
-                    int confirm = JOptionPane.showConfirmDialog(
-                            VisualizarTransacaoView.this,
-                            "Deseja realmente excluir esta transação?",
-                            "Confirmação",
-                            JOptionPane.YES_NO_OPTION
-                    );
-                    if (confirm == JOptionPane.YES_OPTION) {
-                        transacaoDAO.deletar(transacao);
-                        SwingUtilities.invokeLater(() -> {
-                            todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
-                            carregarTabela(todasTransacoes, null, null);
-                        });
-                    }
-                } else if (colAtivo == COL_EDITAR) {
-                    SwingUtilities.invokeLater(() -> {
+                Transacao transacao = getTransacaoPorLinha(rowAtivo);
+                if (transacao != null) {
+                    if (colAtivo == COL_EXCLUIR) {
+                        int confirm = JOptionPane.showConfirmDialog(
+                                VisualizarTransacaoView.this,
+                                "Deseja realmente excluir esta transação?",
+                                "Confirmação",
+                                JOptionPane.YES_NO_OPTION
+                        );
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            transacaoDAO.deletar(transacao);
+                            List<Transacao> atualizadas = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+                            setListaTransacoes(atualizadas);
+                        }
+                    } else if (colAtivo == COL_EDITAR) {
                         editarTransacao(transacao);
-                    });
+                    }
                 }
             }
             isPushed = false;
-            return label;
+            return button.getText();
         }
 
         @Override
@@ -355,13 +430,13 @@ public class VisualizarTransacaoView extends JFrame {
         }
     }
 
-    private void editarTransacao(Transacao t) {
+    private void editarTransacao(Transacao transacao) {
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(6, 6, 6, 6);
         gbc.anchor = GridBagConstraints.WEST;
-
         int y = 0;
+
         // Data
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -375,7 +450,7 @@ public class VisualizarTransacaoView extends JFrame {
             txtData = new JFormattedTextField();
         }
         txtData.setColumns(8);
-        txtData.setText(DATE_FMT.format(t.getData()));
+        txtData.setText(DATE_FMT.format(transacao.getData()));
         gbc.gridx = 1;
         panel.add(txtData, gbc);
 
@@ -384,7 +459,7 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Valor (R$):"), gbc);
-        JTextField txtValor = new JTextField(String.format("%.2f", t.getValor()), 10);
+        JTextField txtValor = new JTextField(String.format("%.2f", transacao.getValor()), 10);
         gbc.gridx = 1;
         panel.add(txtValor, gbc);
 
@@ -394,7 +469,7 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridy = y;
         panel.add(new JLabel("Classificação:"), gbc);
         JComboBox<String> cbClass = new JComboBox<>(new String[]{"Receita", "Despesa"});
-        cbClass.setSelectedItem(t.getClassificacao());
+        cbClass.setSelectedItem(transacao.getClassificacao());
         gbc.gridx = 1;
         panel.add(cbClass, gbc);
 
@@ -403,11 +478,10 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Categoria:"), gbc);
-        CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
         List<Categoria> listaCats = categoriaDAO.buscarPorUsuario(usuario.getLogin());
         String[] nomesCats = listaCats.stream().map(Categoria::getNome).toArray(String[]::new);
         JComboBox<String> cbCat = new JComboBox<>(nomesCats);
-        cbCat.setSelectedItem(t.getCategoria().getNome());
+        cbCat.setSelectedItem(transacao.getCategoria().getNome());
         gbc.gridx = 1;
         panel.add(cbCat, gbc);
 
@@ -416,7 +490,7 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Descrição:"), gbc);
-        JTextField txtDesc = new JTextField(t.getDescricao(), 15);
+        JTextField txtDesc = new JTextField(transacao.getDescricao(), 15);
         gbc.gridx = 1;
         panel.add(txtDesc, gbc);
 
@@ -431,11 +505,8 @@ public class VisualizarTransacaoView extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 LocalDate novaData = LocalDate.parse(txtData.getText(), DATE_FMT);
-
                 float novoValor = Float.parseFloat(txtValor.getText().replace(',', '.'));
-
                 String novaClas = (String) cbClass.getSelectedItem();
-
                 String novoNomeCat = (String) cbCat.getSelectedItem();
                 Categoria novaCatEnt = categoriaDAO.buscarPorNomeEUsuario(novoNomeCat, usuario.getLogin());
                 if (novaCatEnt == null) {
@@ -447,7 +518,6 @@ public class VisualizarTransacaoView extends JFrame {
                     );
                     return;
                 }
-
                 String novaDesc = txtDesc.getText().trim();
                 if (novaDesc.isEmpty()) {
                     JOptionPane.showMessageDialog(
@@ -459,15 +529,15 @@ public class VisualizarTransacaoView extends JFrame {
                     return;
                 }
 
-                t.setData(novaData);
-                t.setValor(novoValor);
-                t.setClassificacao(novaClas);
-                t.setCategoria(novaCatEnt);
-                t.setDescricao(novaDesc);
-                transacaoDAO.atualizar(t);
+                transacao.setData(novaData);
+                transacao.setValor(novoValor);
+                transacao.setClassificacao(novaClas);
+                transacao.setCategoria(novaCatEnt);
+                transacao.setDescricao(novaDesc);
+                transacaoDAO.atualizar(transacao);
 
-                todasTransacoes = transacaoDAO.buscarPorUsuario(usuario.getLogin());
-                carregarTabela(todasTransacoes, null, null);
+                List<Transacao> atualizadas = transacaoDAO.buscarPorUsuario(usuario.getLogin());
+                setListaTransacoes(atualizadas);
 
             } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(
@@ -484,51 +554,6 @@ public class VisualizarTransacaoView extends JFrame {
                         JOptionPane.ERROR_MESSAGE
                 );
             }
-        }
-    }
-
-    private void aplicarFiltro() {
-        try {
-            LocalDate inicio = chkTodas.isSelected()
-                    ? null
-                    : LocalDate.parse(txtDataInicio.getText(), DATE_FMT);
-            LocalDate fim = chkTodas.isSelected()
-                    ? null
-                    : LocalDate.parse(txtDataFim.getText(), DATE_FMT);
-
-            boolean filRec = chkReceita.isSelected();
-            boolean filDes = chkDespesa.isSelected();
-            boolean todasCats = chkTodasCats.isSelected();
-
-            List<String> selCats = todasCats
-                    ? Collections.emptyList()
-                    : chkCategorias.stream()
-                    .filter(JCheckBox::isSelected)
-                    .map(AbstractButton::getText)
-                    .collect(Collectors.toList());
-
-            List<Transacao> filtradas = todasTransacoes.stream()
-                    .filter(t -> {
-                        if (inicio == null) return true;
-                        LocalDate d = t.getData();
-                        return !d.isBefore(inicio) && !d.isAfter(fim);
-                    })
-                    .filter(t -> {
-                        boolean okClas = (filRec && "Receita".equalsIgnoreCase(t.getClassificacao()))
-                                || (filDes && "Despesa".equalsIgnoreCase(t.getClassificacao()));
-                        boolean okCat = todasCats || selCats.contains(t.getCategoria().getNome());
-                        return okClas && okCat;
-                    })
-                    .collect(Collectors.toList());
-
-            carregarTabela(filtradas, inicio, fim);
-        } catch (DateTimeParseException ex) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "Data inválida. Use dd/MM/yyyy.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE
-            );
         }
     }
 }

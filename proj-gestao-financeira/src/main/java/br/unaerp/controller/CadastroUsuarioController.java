@@ -33,33 +33,31 @@ public class CadastroUsuarioController {
         if (login.isEmpty() || nome.isEmpty() || documento.isEmpty() || senha.isEmpty()) {
             JOptionPane.showMessageDialog(cadastroView,
                     "Preencha todos os campos!",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         if (usuarioDAO.buscarPorLogin(login) != null) {
             JOptionPane.showMessageDialog(cadastroView,
                     "Já existe usuário com esse login.",
-                    "Erro",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Erro", JOptionPane.ERROR_MESSAGE);
             return;
         }
 
         Usuario novoUsuario = new Usuario(login, senha, nome, tipo, documento);
-
         Categoria catSalario = new Categoria("Salário", novoUsuario);
         Categoria catMercado = new Categoria("Mercado", novoUsuario);
         Categoria catSaude = new Categoria("Saúde", novoUsuario);
         novoUsuario.adicionarCategoria(catSalario);
         novoUsuario.adicionarCategoria(catMercado);
         novoUsuario.adicionarCategoria(catSaude);
-        LoginController.adicionarUsuarioNaMemoria(novoUsuario);
+
         usuarioDAO.salvar(novoUsuario);
+
         JOptionPane.showMessageDialog(cadastroView,
                 "Usuário cadastrado com sucesso!",
-                "Sucesso",
-                JOptionPane.INFORMATION_MESSAGE);
+                "Sucesso", JOptionPane.INFORMATION_MESSAGE);
+
         voltarParaLogin();
     }
 

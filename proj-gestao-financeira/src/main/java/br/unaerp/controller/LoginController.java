@@ -31,8 +31,8 @@ public class LoginController {
         UsuarioDAO dao = new UsuarioDAOImpl();
         List<Usuario> lista = dao.obterTodos();
         usuariosEmMemoria.clear();
-        for (Usuario usuario : lista) {
-            usuariosEmMemoria.put(usuario.getLogin(), usuario);
+        for (Usuario u : lista) {
+            usuariosEmMemoria.put(u.getLogin(), u);
         }
     }
 
@@ -41,7 +41,6 @@ public class LoginController {
         String senha = loginView.getSenha();
 
         Usuario usuarioMemoria = usuariosEmMemoria.get(usuario);
-
         if (usuarioMemoria != null && usuarioMemoria.verificarSenha(senha)) {
             JOptionPane.showMessageDialog(loginView, "Login realizado com sucesso!");
             SwingUtilities.invokeLater(() -> {
@@ -53,8 +52,7 @@ public class LoginController {
         } else {
             JOptionPane.showMessageDialog(loginView,
                     "Usuário ou senha incorretos.",
-                    "Erro de Login",
-                    JOptionPane.ERROR_MESSAGE);
+                    "Erro de Login", JOptionPane.ERROR_MESSAGE);
         }
     }
 
