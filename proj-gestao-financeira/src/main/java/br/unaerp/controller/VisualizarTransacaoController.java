@@ -72,7 +72,7 @@ public class VisualizarTransacaoController {
             view.selecionarAbaTransacoes();
         });
 
-        view.addAtualizarListener(e -> {
+        view.addLimparListener(e -> {
             todasTransacoes = transacaoDAO.buscarPorUsuario(usuarioLogado.getLogin());
             view.setListaTransacoes(todasTransacoes);
             view.selecionarAbaTransacoes();

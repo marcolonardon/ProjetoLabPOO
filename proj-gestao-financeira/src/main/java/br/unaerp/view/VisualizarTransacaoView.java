@@ -38,8 +38,8 @@ public class VisualizarTransacaoView extends JFrame {
     private JCheckBox chkTodasDatas;
     private JCheckBox chkReceita, chkDespesa;
     private JCheckBox chkTodasCategorias;
-    private List<JCheckBox> chkCategorias; // será preenchido pelo Controller
-    private JButton btnFiltrar, btnAtualizar, btnVoltarFiltros;
+    private List<JCheckBox> chkCategorias;
+    private JButton btnFiltrar, btnLimpar, btnVoltarFiltros;
 
     private JTabbedPane tabPane;
 
@@ -72,7 +72,6 @@ public class VisualizarTransacaoView extends JFrame {
         tableModel = new DefaultTableModel(cols, 0) {
             @Override
             public boolean isCellEditable(int row, int col) {
-                // Só as colunas “Editar” e “Excluir” são clicáveis
                 return (col == COL_EDITAR || col == COL_EXCLUIR);
             }
         };
@@ -177,13 +176,13 @@ public class VisualizarTransacaoView extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 10));
         btnFiltrar = new JButton("Filtrar");
         btnFiltrar.setPreferredSize(new Dimension(100, 30));
-        btnAtualizar = new JButton("Atualizar");
-        btnAtualizar.setPreferredSize(new Dimension(100, 30));
+        btnLimpar = new JButton("Limpar");
+        btnLimpar.setPreferredSize(new Dimension(100, 30));
         btnVoltarFiltros = new JButton("Voltar");
         btnVoltarFiltros.setPreferredSize(new Dimension(100, 30));
 
         btnPanel.add(btnFiltrar);
-        btnPanel.add(btnAtualizar);
+        btnPanel.add(btnLimpar);
         btnPanel.add(btnVoltarFiltros);
         filtroPanel.add(btnPanel);
 
@@ -248,13 +247,13 @@ public class VisualizarTransacaoView extends JFrame {
         panelCategoriasBox.add(chkTodasCategorias);
         chkCategorias.clear();
 
-        for (Categoria c : listaCategorias) {
-            JCheckBox cb = new JCheckBox(c.getNome(), true);
-            chkCategorias.add(cb);
-            panelCategoriasBox.add(cb);
+        for (Categoria categoria : listaCategorias) {
+            JCheckBox checkBox = new JCheckBox(categoria.getNome(), true);
+            chkCategorias.add(checkBox);
+            panelCategoriasBox.add(checkBox);
 
-            cb.addActionListener(e -> {
-                if (!cb.isSelected()) {
+            checkBox.addActionListener(e -> {
+                if (!checkBox.isSelected()) {
                     chkTodasCategorias.setSelected(false);
                 } else {
                     boolean todasSel = chkCategorias.stream().allMatch(JCheckBox::isSelected);
@@ -265,15 +264,11 @@ public class VisualizarTransacaoView extends JFrame {
 
         chkTodasCategorias.addActionListener(e -> {
             boolean seleciona = chkTodasCategorias.isSelected();
-            chkCategorias.forEach(cb -> cb.setSelected(seleciona));
+            chkCategorias.forEach(checkBox -> checkBox.setSelected(seleciona));
         });
 
         panelCategoriasBox.revalidate();
         panelCategoriasBox.repaint();
-    }
-
-    public List<Transacao> getListaTransacoesAtuais() {
-        return Collections.unmodifiableList(listaTransacoesAtuais);
     }
 
     public Transacao getTransacaoPorLinha(int linha) {
@@ -284,7 +279,6 @@ public class VisualizarTransacaoView extends JFrame {
     public JTable getTable() {
         return table;
     }
-
 
     public boolean isTodasDatasSelecionado() {
         return chkTodasDatas.isSelected();
@@ -317,20 +311,30 @@ public class VisualizarTransacaoView extends JFrame {
                 .collect(Collectors.toList());
     }
 
-    public void addFiltrarListener(ActionListener l) {
-        btnFiltrar.addActionListener(l);
+    public void addFiltrarListener(ActionListener actionListener) {
+        btnFiltrar.addActionListener(actionListener);
     }
 
-    public void addAtualizarListener(ActionListener l) {
-        btnAtualizar.addActionListener(l);
+    public void addLimparListener(ActionListener actionListener) {
+        btnLimpar.addActionListener(e -> {
+            int confirm = JOptionPane.showConfirmDialog(
+                    VisualizarTransacaoView.this,
+                    "Realmente deseja limpar os filtros?",
+                    "Confirmação",
+                    JOptionPane.YES_NO_OPTION
+            );
+            if (confirm == JOptionPane.YES_OPTION) {
+                actionListener.actionPerformed(e);
+            }
+        });
     }
 
-    public void addVoltarFiltrosListener(ActionListener l) {
-        btnVoltarFiltros.addActionListener(l);
+    public void addVoltarFiltrosListener(ActionListener actionListener) {
+        btnVoltarFiltros.addActionListener(actionListener);
     }
 
-    public void addVoltarTransacoesListener(ActionListener l) {
-        btnVoltarTransacoes.addActionListener(l);
+    public void addVoltarTransacoesListener(ActionListener actionListener) {
+        btnVoltarTransacoes.addActionListener(actionListener);
     }
 
     public void selecionarAbaTransacoes() {
@@ -438,7 +442,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.anchor = GridBagConstraints.WEST;
         int y = 0;
 
-        // Data
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Data (dd/MM/yyyy):"), gbc);
@@ -455,7 +458,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(txtData, gbc);
 
-        // Valor
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -464,7 +466,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(txtValor, gbc);
 
-        // Classificação
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -474,7 +475,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(cbClass, gbc);
 
-        // Categoria
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
@@ -486,7 +486,6 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(cbCat, gbc);
 
-        // Descrição
         y++;
         gbc.gridx = 0;
         gbc.gridy = y;
