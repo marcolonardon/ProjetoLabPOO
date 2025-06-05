@@ -15,6 +15,8 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -77,8 +79,6 @@ public class VisualizarTransacaoView extends JFrame {
         };
         table = new JTable(tableModel);
         table.getTableHeader().setReorderingAllowed(false);
-
-        table.getColumnModel().getColumn(1).setCellRenderer(new TextAreaRenderer());
         table.getColumnModel().getColumn(COL_EDITAR).setPreferredWidth(80);
         table.getColumnModel().getColumn(COL_EDITAR).setMaxWidth(80);
         table.getColumnModel().getColumn(COL_EXCLUIR).setPreferredWidth(80);
@@ -89,6 +89,25 @@ public class VisualizarTransacaoView extends JFrame {
 
         table.getColumn("Excluir").setCellRenderer(new ButtonRenderer());
         table.getColumn("Excluir").setCellEditor(new ButtonEditor(new JCheckBox()));
+
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = table.rowAtPoint(e.getPoint());
+                int col = table.columnAtPoint(e.getPoint());
+                if (row >= 0 && col >= 0 && col != COL_EDITAR && col != COL_EXCLUIR) {
+                    Object val = table.getValueAt(row, col);
+                    if (val != null) {
+                        JOptionPane.showMessageDialog(
+                                VisualizarTransacaoView.this,
+                                val.toString(),
+                                "Conteúdo Completo",
+                                JOptionPane.INFORMATION_MESSAGE
+                        );
+                    }
+                }
+            }
+        });
 
         panelTransacoes.add(new JScrollPane(table), BorderLayout.CENTER);
 
@@ -264,7 +283,7 @@ public class VisualizarTransacaoView extends JFrame {
 
         chkTodasCategorias.addActionListener(e -> {
             boolean seleciona = chkTodasCategorias.isSelected();
-            chkCategorias.forEach(checkBox -> checkBox.setSelected(seleciona));
+            chkCategorias.forEach(cb -> cb.setSelected(seleciona));
         });
 
         panelCategoriasBox.revalidate();
@@ -339,26 +358,6 @@ public class VisualizarTransacaoView extends JFrame {
 
     public void selecionarAbaTransacoes() {
         tabPane.setSelectedIndex(0);
-    }
-
-    static class TextAreaRenderer extends JTextArea implements TableCellRenderer {
-        public TextAreaRenderer() {
-            setLineWrap(true);
-            setWrapStyleWord(true);
-            setOpaque(true);
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(
-                JTable table, Object val, boolean sel, boolean focus, int row, int col) {
-            setText(val != null ? val.toString() : "");
-            setSize(table.getColumnModel().getColumn(col).getWidth(), getPreferredSize().height);
-            setBackground(sel ? table.getSelectionBackground() : table.getBackground());
-            setForeground(sel ? table.getSelectionForeground() : table.getForeground());
-            int h = getPreferredSize().height;
-            if (table.getRowHeight(row) != h) table.setRowHeight(row, h);
-            return this;
-        }
     }
 
     class ButtonRenderer extends JButton implements TableCellRenderer {
