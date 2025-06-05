@@ -3,6 +3,9 @@ package br.unaerp.view;
 import br.unaerp.model.Categoria;
 import br.unaerp.model.CategoriaDAO;
 import br.unaerp.model.CategoriaDAOImpl;
+import br.unaerp.model.Transacao;
+import br.unaerp.model.TransacaoDAO;
+import br.unaerp.model.TransacaoDAOImpl;
 import br.unaerp.model.Usuario;
 
 import javax.swing.*;
@@ -14,6 +17,7 @@ public class GerenciarCategoriaView extends JFrame {
 
     private final Usuario usuario;
     private final CategoriaDAO categoriaDAO = new CategoriaDAOImpl();
+    private final TransacaoDAO transacaoDAO = new TransacaoDAOImpl();
 
     private JButton btnVoltar;
     private JTextField txtNovaCategoria;
@@ -251,6 +255,33 @@ public class GerenciarCategoriaView extends JFrame {
                 return;
             }
 
+            Categoria cat = categoriaDAO.buscarPorNomeEUsuario(alvo, usuario.getLogin());
+            if (cat == null) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Categoria não encontrada no banco.",
+                        "Erro",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                carregarCombos();
+                return;
+            }
+
+            List<Transacao> transacaoUsando = transacaoDAO.buscarPorUsuario(usuario.getLogin())
+                    .stream()
+                    .filter(transacao -> transacao.getCategoria().getId().equals(cat.getId()))
+                    .collect(Collectors.toList());
+
+            if (!transacaoUsando.isEmpty()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Não é possível excluir a categoria \"" + alvo + "\" porque existem transações associadas a ela.",
+                        "Aviso",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
             int resp = JOptionPane.showConfirmDialog(
                     this,
                     "Tem certeza que deseja excluir a categoria '" + alvo + "'?",
@@ -258,23 +289,13 @@ public class GerenciarCategoriaView extends JFrame {
                     JOptionPane.YES_NO_OPTION
             );
             if (resp == JOptionPane.YES_OPTION) {
-                Categoria cat = categoriaDAO.buscarPorNomeEUsuario(alvo, usuario.getLogin());
-                if (cat != null) {
-                    categoriaDAO.deletar(cat);
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Categoria excluída com sucesso.",
-                            "Sucesso",
-                            JOptionPane.INFORMATION_MESSAGE
-                    );
-                } else {
-                    JOptionPane.showMessageDialog(
-                            this,
-                            "Categoria não encontrada no banco.",
-                            "Erro",
-                            JOptionPane.ERROR_MESSAGE
-                    );
-                }
+                categoriaDAO.deletar(cat);
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Categoria excluída com sucesso.",
+                        "Sucesso",
+                        JOptionPane.INFORMATION_MESSAGE
+                );
                 carregarCombos();
             }
         });
