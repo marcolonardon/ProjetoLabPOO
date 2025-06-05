@@ -5,20 +5,23 @@ import br.unaerp.model.Usuario;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.text.NumberFormatter;
 import javax.swing.text.MaskFormatter;
 import java.awt.*;
-import java.time.LocalDate;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class RegistrarTransacaoView extends JFrame {
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final Usuario usuario;
 
-    private JTextField campoValor;
+    private JFormattedTextField campoValor;
     private JComboBox<String> comboClassificacao;
-    private JComboBox<Categoria> comboCategoria;  // Agora JComboBox<Categoria>
+    private JComboBox<Categoria> comboCategoria;
     private JTextField campoDescricao;
     private JFormattedTextField campoData;
     private JButton btnRegistrar;
@@ -55,7 +58,16 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("*Valor (R$):"), gbc);
-        campoValor = new JTextField(10);
+
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        NumberFormatter vf = new NumberFormatter(nf);
+        vf.setValueClass(Double.class);
+        vf.setAllowsInvalid(false);
+        vf.setOverwriteMode(true);
+        campoValor = new JFormattedTextField(vf);
+        campoValor.setColumns(10);
         gbc.gridx = 1;
         panel.add(campoValor, gbc);
 
@@ -68,7 +80,7 @@ public class RegistrarTransacaoView extends JFrame {
             MaskFormatter mask = new MaskFormatter("##/##/####");
             mask.setPlaceholderCharacter('_');
             campoData = new JFormattedTextField(mask);
-        } catch (Exception ex) {
+        } catch (ParseException ex) {
             campoData = new JFormattedTextField();
         }
         campoData.setColumns(8);
@@ -89,7 +101,6 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("*Categoria:"), gbc);
-
         comboCategoria = new JComboBox<>();
         comboCategoria.setPreferredSize(new Dimension(200, 30));
         gbc.gridx = 1;
@@ -104,6 +115,7 @@ public class RegistrarTransacaoView extends JFrame {
         gbc.gridx = 1;
         panel.add(campoDescricao, gbc);
 
+        // Botões
         y++;
         btnRegistrar = new JButton("Registrar");
         btnRegistrar.setPreferredSize(new Dimension(120, 30));
@@ -142,7 +154,11 @@ public class RegistrarTransacaoView extends JFrame {
     }
 
     public String getValor() {
-        return campoValor.getText().trim();
+        Object val = campoValor.getValue();
+        if (val == null) {
+            return "";
+        }
+        return String.format(Locale.forLanguageTag("pt-BR"), "%.2f", ((Number) val).doubleValue());
     }
 
     public String getData() {
@@ -161,10 +177,6 @@ public class RegistrarTransacaoView extends JFrame {
         return (Categoria) comboCategoria.getSelectedItem();
     }
 
-    public void setTextoBotaoRegistrar(String texto) {
-        btnRegistrar.setText(texto);
-    }
-
     public JButton getBtnRegistrar() {
         return btnRegistrar;
     }
@@ -174,7 +186,7 @@ public class RegistrarTransacaoView extends JFrame {
     }
 
     public void clearCampos() {
-        campoValor.setText("");
+        campoValor.setValue(null);
         campoData.setText("");
         campoDescricao.setText("");
         comboClassificacao.setSelectedIndex(0);
@@ -182,7 +194,11 @@ public class RegistrarTransacaoView extends JFrame {
     }
 
     public void setValor(String valor) {
-        campoValor.setText(valor);
+        try {
+            Number parsed = NumberFormat.getNumberInstance(new Locale("pt", "BR")).parse(valor);
+            campoValor.setValue(parsed.doubleValue());
+        } catch (ParseException ignored) {
+        }
     }
 
     public void setData(String data) {
@@ -200,5 +216,4 @@ public class RegistrarTransacaoView extends JFrame {
     public void setCategoriaSelecionada(Categoria categoria) {
         comboCategoria.setSelectedItem(categoria);
     }
-
 }

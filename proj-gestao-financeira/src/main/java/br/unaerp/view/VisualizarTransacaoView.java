@@ -14,16 +14,19 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.text.MaskFormatter;
+import javax.swing.text.NumberFormatter;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 public class VisualizarTransacaoView extends JFrame {
@@ -473,7 +476,16 @@ public class VisualizarTransacaoView extends JFrame {
         gbc.gridx = 0;
         gbc.gridy = y;
         panel.add(new JLabel("Valor (R$):"), gbc);
-        JTextField txtValor = new JTextField(String.format("%.2f", transacao.getValor()), 10);
+        NumberFormat nf = NumberFormat.getNumberInstance(new Locale("pt", "BR"));
+        nf.setMinimumFractionDigits(2);
+        nf.setMaximumFractionDigits(2);
+        NumberFormatter vf = new NumberFormatter(nf);
+        vf.setValueClass(Double.class);
+        vf.setAllowsInvalid(false);
+        vf.setOverwriteMode(true);
+        JFormattedTextField txtValor = new JFormattedTextField(vf);
+        txtValor.setColumns(10);
+        txtValor.setValue(transacao.getValor());
         gbc.gridx = 1;
         panel.add(txtValor, gbc);
 
@@ -516,7 +528,9 @@ public class VisualizarTransacaoView extends JFrame {
         if (result == JOptionPane.OK_OPTION) {
             try {
                 LocalDate novaData = LocalDate.parse(txtData.getText(), DATE_FMT);
-                float novoValor = Float.parseFloat(txtValor.getText().replace(',', '.'));
+                Object val = txtValor.getValue();
+                if (val == null) throw new NumberFormatException();
+                double novoValor = ((Number) val).doubleValue();
                 String novaClas = (String) cbClass.getSelectedItem();
                 String novoNomeCat = (String) cbCat.getSelectedItem();
                 Categoria novaCatEnt = categoriaDAO.buscarPorNomeEUsuario(novoNomeCat, usuario.getLogin());
@@ -541,7 +555,7 @@ public class VisualizarTransacaoView extends JFrame {
                 }
 
                 transacao.setData(novaData);
-                transacao.setValor(novoValor);
+                transacao.setValor((float) novoValor);
                 transacao.setClassificacao(novaClas);
                 transacao.setCategoria(novaCatEnt);
                 transacao.setDescricao(novaDesc);
