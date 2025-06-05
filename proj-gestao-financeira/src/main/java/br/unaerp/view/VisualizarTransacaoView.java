@@ -90,7 +90,7 @@ public class VisualizarTransacaoView extends JFrame {
         table.getColumnModel().getColumn(COL_EXCLUIR).setPreferredWidth(80);
         table.getColumnModel().getColumn(COL_EXCLUIR).setMaxWidth(80);
 
-        table.getColumn("Editar").setCellRenderer((TableCellRenderer) new ButtonRenderer());
+        table.getColumn("Editar").setCellRenderer(new ButtonRenderer());
         table.getColumn("Editar").setCellEditor(new ButtonEditor(new JCheckBox()));
 
         table.getColumn("Excluir").setCellRenderer(new ButtonRenderer());
